@@ -48,13 +48,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HabitTrackerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(Modifier.padding(innerPadding))
-                }
+                NavScreen()
             }
         }
+
     }
 }
+
+
+
+
+
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     val calenderData = CalenderData()
