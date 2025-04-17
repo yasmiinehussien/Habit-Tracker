@@ -47,11 +47,12 @@ fun NavScreen(modifier: Modifier = Modifier) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 shadowElevation = 4.dp,
-                tonalElevation = 2.dp,
+                tonalElevation = 1.dp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(if (isTablet) 100.dp else 80.dp)
-                    .padding(bottom = 16.dp)
+                    .height(if (isTablet) 100.dp else 90.dp)
+                    .padding(bottom = 32.dp)
+                    .padding(horizontal = 16.dp)
             ) {
                 AnimatedNavigationBar(
                     modifier = Modifier
@@ -95,11 +96,13 @@ fun NavScreen(modifier: Modifier = Modifier) {
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedIndex) {
                 0 -> HomeScreen()
+                3-> ProfileScreen()
                 else -> PlaceholderScreen()
             }
         }
 
     }
+
 }
 
 
