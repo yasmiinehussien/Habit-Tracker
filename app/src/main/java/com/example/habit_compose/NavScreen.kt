@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.*
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -40,6 +41,8 @@ fun NavScreen(modifier: Modifier = Modifier) {
         NavIcon("Stats", Icons.Default.InsertChart),
         NavIcon("Personal", Icons.Default.Person)
     )
+
+    val navController = rememberNavController()
 
 
     var selectedIndex by remember { mutableStateOf(0) }
@@ -107,12 +110,25 @@ fun NavScreen(modifier: Modifier = Modifier) {
     ) { innerPadding ->
         @OptIn(kotlin.time.ExperimentalTime::class)
         Box(modifier = Modifier.padding(innerPadding)) {
-            when (selectedIndex) {
-                0 -> HomeScreen()
-                1 -> StopwatchScreen(viewModel = viewModel())
-                4-> ProfileScreen()
-                else -> PlaceholderScreen()
+            NavHost(
+                navController = navController,
+                startDestination = "tabs"
+            ) {
+                composable("tabs") {
+                    when (selectedIndex) {
+                        0 -> HomeScreen()
+                        1 -> StopwatchScreen(viewModel = viewModel())
+                        2 -> HabitCategoryScreen(navController)
+                        4 -> ProfileScreen()
+                        else -> PlaceholderScreen()
+                    }
+                }
+
+                composable("habit_form") {
+                    HabitFormScreen()
+                }
             }
+
         }
 
     }
