@@ -70,12 +70,13 @@ dependencies {
     implementation ("androidx.compose.material3:material3:1.2.0")
     implementation("androidx.compose.foundation:foundation:1.4.0")
     implementation("androidx.compose.foundation:foundation:1.5.1")
-
     implementation("io.coil-kt:coil-compose:2.1.0")
     implementation ("androidx.navigation:navigation-compose:2.7.5")
-
-
     implementation ("androidx.compose.material:material-icons-extended")
+    implementation("com.exyte:animated-navigation-bar:1.0.0")
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.animation)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
 
 }
