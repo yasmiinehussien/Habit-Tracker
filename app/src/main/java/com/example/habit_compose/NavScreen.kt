@@ -1,6 +1,5 @@
 package com.example.habit_compose
 
-
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,7 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.habit_compose.HomeScreen
+
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
@@ -119,6 +118,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
                         0 -> HomeScreen()
                         1 -> StopwatchScreen(viewModel = viewModel())
                         2 -> HabitCategoryScreen(navController)
+                        3-> HabitTrackerStatsScreen()
                         4 -> ProfileScreen()
                         else -> PlaceholderScreen()
                     }
