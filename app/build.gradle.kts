@@ -1,7 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("org.jetbrains.kotlin.kapt")
 }
+
 
 android {
     namespace = "com.example.habit_compose"
@@ -77,6 +79,11 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.animation)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
+    implementation ("androidx.room:room-runtime:2.6.1")
+    implementation( "androidx.room:room-ktx:2.6.1")
+    kapt ("androidx.room:room-compiler:2.6.1")
+
 
 
 }

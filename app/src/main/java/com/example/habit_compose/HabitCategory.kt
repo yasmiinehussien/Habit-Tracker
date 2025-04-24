@@ -40,12 +40,17 @@ data class HabitCategory(
 
 val habitCategories = listOf(
     HabitCategory("Eat Healthy", "Nutrition", R.drawable.back_yoga, R.drawable.eat_healthy, Color(0xFFFF7043)),
-    HabitCategory("Don’t smoke", "Health", R.drawable.bc_cigratte, R.drawable.ciggrate, Color(0xFF29B6F6)),
+    HabitCategory("Don’t smoke", "Smoking", R.drawable.bc_cigratte, R.drawable.ciggrate, Color(0xFF29B6F6)),
     HabitCategory("Glass of water", "Health", R.drawable.back_water, R.drawable.water1, Color(0xFFAB47BC)),
     HabitCategory("Yoga", "Meditation", R.drawable.back_yoga, R.drawable.yoga1, Color(0xFF66BB6A)),
     HabitCategory("Exercise", "Sport", R.drawable.sport_back, R.drawable.sport2, Color(0xFFEF5350)),
     HabitCategory("Reading", "Focus", R.drawable.back_water, R.drawable.reading, Color(0xFFFFA726)),
-    HabitCategory("Journaling", "Mindfulness", R.drawable.back_yoga, R.drawable.reading, Color(0xFF5C6BC0)),    HabitCategory("Sleep Early", "Health", R.drawable.sport_back, R.drawable.sleep, Color(0xFF26A69A)),
+    HabitCategory("Journaling", "Mindfulness", R.drawable.back_yoga, R.drawable.reading, Color(0xFF5C6BC0)),
+    HabitCategory("Sleep Early", "Health", R.drawable.sport_back, R.drawable.sleep, Color(0xFF26A69A)),
+
+    HabitCategory("Pray", "Religion", R.drawable.back_yoga, R.drawable.pray, Color(0xFF8D6E63)),
+    HabitCategory("Quran", "Religion", R.drawable.back_water, R.drawable.quran, Color(0xFF8D6E63)),
+
 
     HabitCategory("Gratitude", "Positivity", R.drawable.back_yoga, R.drawable.grateful, Color(0xFF8D6E63)),
     HabitCategory("Time Management", "Productivity", R.drawable.back_water, R.drawable.time_mangament, Color(0xFF7E57C2)),
@@ -80,7 +85,7 @@ fun HabitCategoryScreen(navController: NavController) {
             ) {
                 itemsIndexed(habitCategories) { index, habit ->
                     HabitCardStyled(habit = habit, index = index) {
-                        navController.navigate("habit_form")
+                        navController.navigate("habit_form/${habit.title}")
                     }
                 }
             }

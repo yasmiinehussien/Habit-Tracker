@@ -18,12 +18,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.flowlayout.FlowRow
 
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun HabitFormScreen() {
+fun HabitFormScreen(navController: NavController, categoryTag: String)
+{
     val GreenPrimary = Color(0xFF008000)
     val DarkGreen = Color(0xFF2E7D32)
     val LightGreenSurface = Color(0xFFE0F2E9)
+
+    val context = LocalContext.current
+    val db = remember { AppDatabase.getDatabase(context) }
+
 
     var name by remember { mutableStateOf("") }
     var selectedIcon by remember { mutableStateOf("\uD83C\uDFC8") }
@@ -57,7 +71,26 @@ fun HabitFormScreen() {
                     .padding(20.dp)
             ) {
                 Button(
-                    onClick = { /* Save logic */ },
+                    onClick = { CoroutineScope(Dispatchers.IO).launch {
+                        db.habitDao().insertHabit(
+                            Habit(
+                                name = name,
+                                repeatFrequency = repeatFrequency,
+                                daysSelected = daysSelected.joinToString(","),
+                                timeOfDay = timeOfDay,
+                                endHabitOn = endHabitOn,
+                                setReminder = setReminder,
+                                isRegularHabit = isRegularHabit,
+                                categoryTag = categoryTag
+                            )
+                        )
+                        withContext(Dispatchers.Main) {
+                            navController.navigate("tabs") {
+                                popUpTo("tabs") { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    } },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -127,47 +160,6 @@ fun HabitFormScreen() {
                     .padding(vertical = 8.dp)
             )
 
-            Text("Icon", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
-            FlowRow(
-                mainAxisSpacing = 12.dp,
-                crossAxisSpacing = 12.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                icons.forEach { icon ->
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (selectedIcon == icon) GreenPrimary.copy(alpha = 0.2f) else Color.LightGray.copy(alpha = 0.2f))
-                            .clickable { selectedIcon = icon },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(icon, fontSize = 24.sp)
-                    }
-                }
-            }
-
-            Text("Color", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
-            FlowRow(
-                mainAxisSpacing = 8.dp,
-                crossAxisSpacing = 8.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                colors.forEach { color ->
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(color)
-                            .border(
-                                width = 2.dp,
-                                color = if (selectedColor == color) Color.Black else Color.Transparent,
-                                shape = CircleShape
-                            )
-                            .clickable { selectedColor = color }
-                    )
-                }
-            }
 
             Text("Repeat", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

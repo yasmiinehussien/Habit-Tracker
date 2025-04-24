@@ -5,6 +5,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 
 import androidx.compose.foundation.background
@@ -13,16 +17,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -36,6 +43,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +63,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
 import com.example.habit_compose.ui.theme.Habit_composeTheme
+import androidx.compose.runtime.*
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,34 +90,88 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun HabitListFromDb(habits: List<Habit>) {
+    val categoryMap = habitCategories.associateBy { it.title }
+
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color.White)
+            .fillMaxSize()
+    ) {
+        if (habits.isEmpty()) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text("No habits yet", color = Color.Gray)
+            }
+        } else {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Your Habits", fontSize = 23.sp)
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(20.dp)
+                ) {
+                    items(habits) { habit ->
+                        val category = categoryMap[habit.categoryTag]
+                        // or habit.categoryTag
+                        HabitCardFromDb(habit, category)
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen() {
+    val context = LocalContext.current
+    val db = remember { AppDatabase.getDatabase(context) }
+    var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
+
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(true) {
+        scope.launch(Dispatchers.IO) {
+            val habits = db.habitDao().getAllHabits()
+            withContext(Dispatchers.Main) {
+                savedHabits = habits
+            }
+        }
+    }
+
+
     val calenderData = CalenderData()
     val today = calenderData.today
     val weekDates = calenderData.getWeekDates()
 
     val selectedDate = rememberSaveable { mutableStateOf(today) }
-    val displayedDate = selectedDate.value ?: today
-    modifier.background(Color(0xFF29CDE8))
-    Column() {
+
+    Column {
         HeadIcons()
 
-        LazyRow() {
-            items(items = weekDates) { date ->
+        LazyRow {
+            items(weekDates) { date ->
                 DateBar(
                     day = date.day,
                     date = date.date.dayOfMonth.toString(),
-                    isSelected = date.date == displayedDate,
+                    isSelected = date.date == selectedDate.value,
                     onClick = { selectedDate.value = date.date }
                 )
             }
-            //when the user select date display its habits otherwise habits of today
         }
 
-        HabitList()
+        HabitListFromDb(habits = savedHabits)
     }
 }
+
 
 @Composable
 fun HeadIcons() {
@@ -207,6 +279,7 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
     }
 }
 
+
 @Composable
 fun HabitList() {
 
@@ -286,4 +359,120 @@ fun HabitCardGridStyle(){}
 fun HomeScreenPreview() {
 
     NavScreen()
+}
+
+
+@Composable
+fun HabitCardFromDb(habit: Habit, category: HabitCategory?) {
+    val animatedAlpha = remember { Animatable(0f) }
+    val animatedOffset = remember { Animatable(30f) }
+
+    LaunchedEffect(Unit) {
+        animatedAlpha.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+        )
+        animatedOffset.animateTo(
+            targetValue = 0f,
+            animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+        )
+    }
+
+    Card(
+        shape = RoundedCornerShape(26.dp),
+        modifier = Modifier
+            .graphicsLayer {
+                alpha = animatedAlpha.value
+                translationY = animatedOffset.value
+            }
+            .fillMaxWidth()
+            .then(Modifier.widthIn(max = 400.dp)) // ✅ Wider card with limit
+            .height(260.dp)
+            .padding(horizontal = 8.dp)
+            .shadow(12.dp, RoundedCornerShape(26.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color(0xFFDFF5EC), Color.Transparent)
+                        )
+                    )
+            )
+
+            Image(
+                painter = painterResource(id = category?.bgImage ?: R.drawable.back_yoga),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(26.dp))
+                    .alpha(0.07f)
+            )
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 24.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .shadow(10.dp, CircleShape)
+                        .clip(CircleShape)
+                ) {
+                    Image(
+                        painter = painterResource(id = category?.illustration ?: R.drawable.reading),
+                        contentDescription = habit.name,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = habit.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp,
+                    color = Color(0xFF1B1B1F),
+                    maxLines = 1
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = category?.tagColor?.copy(alpha = 0.15f) ?: Color.LightGray,
+                    shadowElevation = 0.dp,
+                    modifier = Modifier
+                        .height(34.dp) // ✅ Less height
+                        .widthIn(min = 140.dp) // ✅ Wider button
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = category?.tag ?: "Habit",
+                            color = category?.tagColor ?: Color.Black,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

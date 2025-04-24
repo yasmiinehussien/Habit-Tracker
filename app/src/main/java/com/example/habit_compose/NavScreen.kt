@@ -124,9 +124,13 @@ fun NavScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                composable("habit_form") {
-                    HabitFormScreen()
+                composable("habit_form/{category}") { backStackEntry ->
+                    val categoryTag = backStackEntry.arguments?.getString("category") ?: "Other"
+                    HabitFormScreen(navController, categoryTag)
                 }
+
+
+
             }
 
         }
