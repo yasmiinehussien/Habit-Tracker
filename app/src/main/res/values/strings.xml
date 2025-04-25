@@ -1,4 +1,8 @@
 <resources>
+<<<<<<< HEAD
     <string name="app_name">Habit Tracker</string>
     <string name="default_web_client_id">18253811828-u6tt3ppc3b69rgrpavk01qu171rkabcl.apps.googleusercontent.com</string>
+=======
+    <string name="app_name">habit_compose</string>
+>>>>>>> c0593dd9c4c276f6b238b6959e60f6131d473651
 </resources>

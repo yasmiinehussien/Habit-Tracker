@@ -4,7 +4,10 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+<<<<<<< HEAD
         <option name="testRunner" value="CHOOSE_PER_TEST" />
+=======
+>>>>>>> c0593dd9c4c276f6b238b6959e60f6131d473651
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
         <option name="modules">

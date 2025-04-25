@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+<<<<<<< HEAD
     <style name="Theme.HabitTracker" parent="android:Theme.Material.Light.NoActionBar" />
+=======
+    <style name="Theme.Habit_compose" parent="android:Theme.Material.Light.NoActionBar" />
+>>>>>>> c0593dd9c4c276f6b238b6959e60f6131d473651
 </resources>

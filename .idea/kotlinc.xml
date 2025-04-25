@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="KotlinJpsPluginSettings">
+<<<<<<< HEAD
     <option name="version" value="2.1.20" />
+=======
+    <option name="version" value="1.9.0" />
+>>>>>>> c0593dd9c4c276f6b238b6959e60f6131d473651
   </component>
 </project>

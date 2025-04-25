@@ -19,6 +19,10 @@ dependencyResolutionManagement {
     }
 }
 
+<<<<<<< HEAD
 rootProject.name = "Habit Tracker"
+=======
+rootProject.name = "habit_compose"
+>>>>>>> c0593dd9c4c276f6b238b6959e60f6131d473651
 include(":app")
  
