@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,6 +69,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -81,7 +83,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             Habit_composeTheme {
                 val navController = rememberNavController()
-                HabitCategoryScreen(navController = navController)
+
+               // HabitCategoryScreen(navController = navController)
                 NavScreen()
 
             }
@@ -90,10 +93,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun HabitListFromDb(habits: List<Habit>) {
-    val categoryMap = habitCategories.associateBy { it.title }
 
+
+@Composable
+fun HabitListFromDb(habits: List<Habit>,navController: NavController) {
+    val categoryMap = habitCategories.associateBy { it.title }
     Box(
         modifier = Modifier
             .padding(16.dp)
@@ -121,7 +125,7 @@ fun HabitListFromDb(habits: List<Habit>) {
                     items(habits) { habit ->
                         val category = categoryMap[habit.categoryTag]
                         // or habit.categoryTag
-                        HabitCardFromDb(habit, category)
+                        HabitCardFromDb(habit, category, navController)
                     }
                 }
             }
@@ -131,7 +135,8 @@ fun HabitListFromDb(habits: List<Habit>) {
 
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController)
+ {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
     var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
@@ -168,7 +173,7 @@ fun HomeScreen() {
             }
         }
 
-        HabitListFromDb(habits = savedHabits)
+        HabitListFromDb(habits = savedHabits, navController = navController)
     }
 }
 
@@ -363,7 +368,7 @@ fun HomeScreenPreview() {
 
 
 @Composable
-fun HabitCardFromDb(habit: Habit, category: HabitCategory?) {
+fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavController) {
     val animatedAlpha = remember { Animatable(0f) }
     val animatedOffset = remember { Animatable(30f) }
 
@@ -381,6 +386,9 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?) {
     Card(
         shape = RoundedCornerShape(26.dp),
         modifier = Modifier
+            .clickable {
+                navController.navigate("habit_details/${habit.id}")
+            }
             .graphicsLayer {
                 alpha = animatedAlpha.value
                 translationY = animatedOffset.value

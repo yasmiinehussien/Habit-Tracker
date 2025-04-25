@@ -115,7 +115,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
             ) {
                 composable("tabs") {
                     when (selectedIndex) {
-                        0 -> HomeScreen()
+                        0 -> HomeScreen(navController)
                         1 -> StopwatchScreen(viewModel = viewModel())
                         2 -> HabitCategoryScreen(navController)
                         3-> HabitTrackerStatsScreen()
@@ -128,6 +128,14 @@ fun NavScreen(modifier: Modifier = Modifier) {
                     val categoryTag = backStackEntry.arguments?.getString("category") ?: "Other"
                     HabitFormScreen(navController, categoryTag)
                 }
+
+                composable("habit_details/{habitId}") { backStackEntry ->
+                    val habitId = backStackEntry.arguments?.getString("habitId")?.toIntOrNull() ?: 0
+                    HabitDetailsScreen(habitId = habitId, navController = navController)
+                }
+
+
+
 
 
 
