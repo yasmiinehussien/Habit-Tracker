@@ -9,10 +9,14 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.InsertChart
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -29,6 +33,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
 
     val navIconList = listOf(
         NavIcon("Home", Icons.Default.Home),
+        NavIcon("timer", Icons.Default.Timer),
         NavIcon("Add", Icons.Default.AddCircle),
         NavIcon("Stats", Icons.Default.InsertChart),
         NavIcon("Personal", Icons.Default.Person)
@@ -66,26 +71,31 @@ fun NavScreen(modifier: Modifier = Modifier) {
                     ),
                     indentAnimation = Height(tween(durationMillis = 300)),
                     barColor = MaterialTheme.colorScheme.surface,
-                    ballColor = Color(0xFF3B773D)
+                    ballColor = Color(0xFF86139A)
                 ) {
 
                     navIconList.forEachIndexed { index, item ->
+                        val isAddIcon = item.label == "Add"
+
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .clickable {
-                                    selectedIndex = index
-                                },
+                                .clickable { selectedIndex = index },
                             contentAlignment = Alignment.Center
                         ) {
+                            val iconTint = when {
+                                selectedIndex == index -> Color(0xFF6D1979) // مختارة
+                                isAddIcon -> Color(0xFF9917AF) // لون مميز للـ Add
+                                else -> Color.Gray
+                            }
+
                             Icon(
-                                modifier = Modifier.size(if (isTablet) 30.dp else 24.dp),
+                                modifier = Modifier
+                                    .size(if (isAddIcon) 50.dp else if (isTablet) 30.dp else 24.dp)
+                                    .offset(y = if (isAddIcon) (-4).dp else 0.dp),
                                 imageVector = item.icon,
                                 contentDescription = item.label,
-                                tint = if (selectedIndex == index)
-                                    Color(0xFF4CAF50)
-                                else
-                                    Color.Gray
+                                tint = iconTint
                             )
                         }
                     }
@@ -93,10 +103,12 @@ fun NavScreen(modifier: Modifier = Modifier) {
             }
         }
     ) { innerPadding ->
+        @OptIn(kotlin.time.ExperimentalTime::class)
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedIndex) {
                 0 -> HomeScreen()
-                3-> ProfileScreen()
+                1 -> StopwatchScreen(viewModel = viewModel())
+                4-> ProfileScreen()
                 else -> PlaceholderScreen()
             }
         }
