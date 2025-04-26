@@ -86,7 +86,7 @@ fun HabitDetailsScreen(habitId: Int, navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(10.dp, RoundedCornerShape(28.dp)),
-                    shape = RoundedCornerShape(28.dp),
+                    shape = RoundedCornerShape(50.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(

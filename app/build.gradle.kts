@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.gms.google-services")
+    alias(libs.plugins.jetbrains.kotlin.compose)
 }
 
 
@@ -61,6 +63,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -80,9 +83,15 @@ dependencies {
     implementation(libs.androidx.compose.animation)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
-    implementation ("androidx.room:room-runtime:2.6.1")
-    implementation( "androidx.room:room-ktx:2.6.1")
-    kapt ("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.7.0-alpha01")
+    implementation("androidx.room:room-ktx:2.7.0-alpha01")
+    kapt("androidx.room:room-compiler:2.7.0-alpha01")
+
+
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-auth")
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    implementation ("com.google.android.gms:play-services-auth:21.2.0")
 
 
 
