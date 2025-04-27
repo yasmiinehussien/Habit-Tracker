@@ -78,6 +78,15 @@ fun ProfileScreen() {
             }
 
             Spacer(modifier = Modifier.width(16.dp))
+            val username = getUsername()
+
+            Text(
+                text = "Hi, $username",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
 
             Column(
                 modifier = Modifier
@@ -183,21 +192,21 @@ fun ProfileScreen() {
             onClick = {
 
 
-                    FirebaseAuth.getInstance().signOut()  // ✅ Sign out from Firebase
+                FirebaseAuth.getInstance().signOut()  // ✅ Sign out from Firebase
 
-                    // If you use Google Sign In too
-                    val googleSignInClient = GoogleSignIn.getClient(
-                        context,
-                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestEmail()
-                            .build()
-                    )
-                    googleSignInClient.signOut().addOnCompleteListener {
-                        // After signing out, go to WelcomeScreenActivity
-                        val intent = Intent(context, WelcomeScreenActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        context.startActivity(intent)
-                    }
+                // If you use Google Sign In too
+                val googleSignInClient = GoogleSignIn.getClient(
+                    context,
+                    GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestEmail()
+                        .build()
+                )
+                googleSignInClient.signOut().addOnCompleteListener {
+                    // After signing out, go to WelcomeScreenActivity
+                    val intent = Intent(context, WelcomeScreenActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    context.startActivity(intent)
+                }
 
 
             },

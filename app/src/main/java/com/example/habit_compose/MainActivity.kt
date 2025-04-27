@@ -70,6 +70,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -84,7 +85,7 @@ class MainActivity : ComponentActivity() {
             Habit_composeTheme {
                 val navController = rememberNavController()
 
-               // HabitCategoryScreen(navController = navController)
+                // HabitCategoryScreen(navController = navController)
                 NavScreen()
 
             }
@@ -132,11 +133,16 @@ fun HabitListFromDb(habits: List<Habit>,navController: NavController) {
         }
     }
 }
+fun getUsername(): String {
+    val user = FirebaseAuth.getInstance().currentUser
+    return user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest"
+}
+
 
 
 @Composable
 fun HomeScreen(navController: NavController)
- {
+{
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
     var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
@@ -180,6 +186,7 @@ fun HomeScreen(navController: NavController)
 
 @Composable
 fun HeadIcons() {
+    val username = getUsername()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -207,7 +214,7 @@ fun HeadIcons() {
         }
         Text(
             // default for ui ,should take username from firebase
-            text = "Hi,username ",
+            text = "Hi ,$username ",
             fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
             fontSize = 21.sp,
         )
