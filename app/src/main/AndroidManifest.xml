@@ -26,6 +26,7 @@
         </activity>
 
         <!-- Add these activities -->
+        <activity android:name=".ForgotPasswordActivity" />
         <activity android:name=".SignUpActivity" android:exported="true" />
         <activity android:name=".LoginActivity" android:exported="true" />
         <activity android:name=".MainActivity" android:exported="true" />

@@ -1,6 +1,7 @@
 package com.example.habit_compose
 
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,14 +20,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun ProfileScreen() {
+    val context = LocalContext.current
+
     var imageUri by rememberSaveable { mutableStateOf("") }
 
     val painter = rememberImagePainter(
@@ -173,7 +180,27 @@ fun ProfileScreen() {
 
 
         Button(
-            onClick = {  },
+            onClick = {
+
+
+                    FirebaseAuth.getInstance().signOut()  // ✅ Sign out from Firebase
+
+                    // If you use Google Sign In too
+                    val googleSignInClient = GoogleSignIn.getClient(
+                        context,
+                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                            .requestEmail()
+                            .build()
+                    )
+                    googleSignInClient.signOut().addOnCompleteListener {
+                        // After signing out, go to WelcomeScreenActivity
+                        val intent = Intent(context, WelcomeScreenActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        context.startActivity(intent)
+                    }
+
+
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)

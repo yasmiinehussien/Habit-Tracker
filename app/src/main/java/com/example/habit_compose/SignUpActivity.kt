@@ -68,6 +68,7 @@ class SignUpActivity : ComponentActivity() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
+            .requestProfile()
             .build()
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
@@ -157,8 +158,20 @@ fun SignUpScreen(
 
         OutlinedButton(
             onClick = {
-                val signInIntent = googleSignInClient.signInIntent
-                googleSignInLauncher.launch(signInIntent)
+                googleSignInClient.signOut().addOnCompleteListener {
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(activity.getString(R.string.default_web_client_id))
+                        .requestEmail()
+                        .requestProfile()
+                        .build()
+
+                    val newGoogleSignInClient = GoogleSignIn.getClient(activity, gso)
+
+                    val signInIntent = newGoogleSignInClient.signInIntent
+                    signInIntent.putExtra("prompt", "select_account")
+
+                    googleSignInLauncher.launch(signInIntent)
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
@@ -172,6 +185,9 @@ fun SignUpScreen(
             Spacer(modifier = Modifier.width(8.dp))
             Text("Sign Up with Google", color = Color.Black)
         }
+
+
+
 
         Spacer(modifier = Modifier.height(20.dp))
 

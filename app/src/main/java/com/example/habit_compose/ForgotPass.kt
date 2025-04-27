@@ -1,7 +1,5 @@
 package com.example.habit_compose
 
-
-
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -13,26 +11,23 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
-
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.habit_compose.ui.theme.Habit_composeTheme
+import com.google.firebase.auth.FirebaseAuth
 
 class ForgotPasswordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,9 +44,8 @@ class ForgotPasswordActivity : ComponentActivity() {
 
 @Composable
 fun ForgotPasswordScreen(context: Activity) {
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var passwordMismatchError by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val primaryColor = Color(0xFF4A0AB2)
     val lightGreyColor = Color.LightGray
@@ -78,7 +72,6 @@ fun ForgotPasswordScreen(context: Activity) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Forgot Password Title with black color
         Text(
             text = "Forgot Password",
             style = MaterialTheme.typography.headlineSmall,
@@ -87,16 +80,15 @@ fun ForgotPasswordScreen(context: Activity) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // New Password Field
+        // Email Field
         OutlinedTextField(
-            value = newPassword,
+            value = email,
             onValueChange = {
-                newPassword = it
-                passwordMismatchError = false
+                email = it
+                errorMessage = null
             },
-            label = { Text("New Password", color = primaryColor) },
+            label = { Text("Email", color = primaryColor) },
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = primaryColor,
@@ -106,31 +98,9 @@ fun ForgotPasswordScreen(context: Activity) {
             )
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Confirm Password Field
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = {
-                confirmPassword = it
-                passwordMismatchError = false
-            },
-            label = { Text("Confirm Password", color = primaryColor) },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = primaryColor,
-                unfocusedBorderColor = lightGreyColor,
-                focusedLabelColor = primaryColor,
-                unfocusedLabelColor = lightGreyColor
-            )
-        )
-
-        // Password mismatch error message
-        if (passwordMismatchError) {
+        if (errorMessage != null) {
             Text(
-                text = "Passwords do not match",
+                text = errorMessage!!,
                 color = Color.Red,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(top = 8.dp)
@@ -142,37 +112,43 @@ fun ForgotPasswordScreen(context: Activity) {
         // Reset Password Button
         Button(
             onClick = {
-                if (newPassword == confirmPassword && newPassword.isNotEmpty()) {
-                    Toast.makeText(context, "Password reset successful", Toast.LENGTH_LONG).show()
-                    context.finish()
+                if (email.isNotEmpty()) {
+                    FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(context, "Check your email to reset your password.", Toast.LENGTH_LONG).show()
+                                context.finish()
+                            } else {
+                                errorMessage = task.exception?.message ?: "Something went wrong"
+                            }
+                        }
                 } else {
-                    passwordMismatchError = true
+                    errorMessage = "Please enter your email"
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
             shape = RoundedCornerShape(10.dp)
         ) {
-            Text("Reset Password", color = Color.White)
+            Text("Send Reset Email", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Want to go back to login? ",
+            text = "Want to go back to login?",
             fontSize = 15.sp,
-
             color = Color.Gray
         )
+
         Spacer(modifier = Modifier.width(4.dp))
 
-        // Login clickable text with different style and color
         ClickableText(
             text = AnnotatedString("Click Here."),
             onClick = {
                 val intent = Intent(context, LoginActivity::class.java)
                 context.startActivity(intent)
-                context.finish() // Optional: close ForgotPasswordActivity
+                context.finish()
             },
             style = MaterialTheme.typography.bodyMedium.copy(
                 color = Color(0xFF4A0AB2),
