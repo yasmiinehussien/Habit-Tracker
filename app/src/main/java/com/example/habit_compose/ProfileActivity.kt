@@ -66,7 +66,7 @@ fun ProfileScreen() {
                 shape = CircleShape,
                 modifier = Modifier
                     .size(150.dp)
-                    .border(4.dp, Color(0xFF0B640E), CircleShape)
+                    .border(4.dp, Color(0xFF8B5EDE), CircleShape)
             ) {
                 Image(
                     painter = painter,
@@ -81,7 +81,7 @@ fun ProfileScreen() {
             val username = getUsername()
 
             Text(
-                text = "Hi, $username",
+                text = ", $username",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 24.dp)
@@ -97,7 +97,7 @@ fun ProfileScreen() {
                     onClick = { launcher.launch("image/*") },
                     modifier = Modifier.align(Alignment.End)
                     ,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B5EDC))
                 ) {
                     Text(
                         text = "Edit Photo",
@@ -139,7 +139,7 @@ fun ProfileScreen() {
                 checked = isSwitchOn,
                 onCheckedChange = { isSwitchOn = it },
                 colors = SwitchDefaults.colors(
-                    checkedTrackColor = Color(0xFF0F5D12),
+                    checkedTrackColor = Color(0xFF7441BE),
                     uncheckedTrackColor = Color(0xFFD0D0D0)
                 )
 
@@ -177,7 +177,7 @@ fun ProfileScreen() {
                 checked = isSwitchOn,
                 onCheckedChange = { isSwitchOn = it },
                 colors = SwitchDefaults.colors(
-                    checkedTrackColor = Color(0xFF0F5D12),
+                    checkedTrackColor = Color(0xFF7831DC),
                     uncheckedTrackColor = Color(0xFFD0D0D0)
                 )
 
@@ -214,7 +214,7 @@ fun ProfileScreen() {
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF258629))
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B36A1))
         ) {
             Text(
                 text = "Logout",

@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.habit_compose.ui.theme.Habit_composeTheme
+import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import com.example.habit_compose.ui.theme.WelcomeScreen
 
 import com.google.android.gms.auth.api.signin.*
@@ -66,7 +66,7 @@ class WelcomeScreenActivity : ComponentActivity() {
 
         // Set content for the Welcome Screen
         setContent {
-            Habit_composeTheme {
+            HabitTrackerTheme {
                 WelcomeScreen(
                     onSignUpClick = {
                         startActivity(Intent(this, SignUpActivity::class.java))  // Navigate to SignUpActivity

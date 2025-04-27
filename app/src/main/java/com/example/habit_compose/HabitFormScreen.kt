@@ -31,8 +31,8 @@ import kotlinx.coroutines.withContext
 @Composable
 fun HabitFormScreen(navController: NavController, categoryTag: String)
 {
-    val GreenPrimary = Color(0xFF008000)
-    val DarkGreen = Color(0xFF2E7D32)
+    val GreenPrimary = Color(0xFF7A49D5)
+    val DarkGreen = Color(0xFF663AB6)
     val LightGreenSurface = Color(0xFFE0F2E9)
 
     val context = LocalContext.current

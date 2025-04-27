@@ -26,14 +26,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.habit_compose.ui.theme.Habit_composeTheme
+import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import com.google.firebase.auth.FirebaseAuth
 
 class ForgotPasswordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Habit_composeTheme {
+            HabitTrackerTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
                     ForgotPasswordScreen(context = this)
                 }

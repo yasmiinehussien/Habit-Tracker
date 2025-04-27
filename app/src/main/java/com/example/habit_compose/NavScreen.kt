@@ -75,7 +75,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
                     ),
                     indentAnimation = Height(tween(durationMillis = 300)),
                     barColor = MaterialTheme.colorScheme.surface,
-                    ballColor = Color(0xFF86139A)
+                    ballColor = Color(0xFF7852CC)
                 ) {
 
                     navIconList.forEachIndexed { index, item ->
@@ -88,8 +88,8 @@ fun NavScreen(modifier: Modifier = Modifier) {
                             contentAlignment = Alignment.Center
                         ) {
                             val iconTint = when {
-                                selectedIndex == index -> Color(0xFF6D1979) // مختارة
-                                isAddIcon -> Color(0xFF9917AF) // لون مميز للـ Add
+                                selectedIndex == index -> Color(0xFF2196F3) // مختارة
+                                isAddIcon -> Color(0xFF943CFD) // لون مميز للـ Add
                                 else -> Color.Gray
                             }
 

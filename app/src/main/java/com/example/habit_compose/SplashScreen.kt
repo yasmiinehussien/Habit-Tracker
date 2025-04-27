@@ -18,14 +18,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.habit_compose.ui.theme.Habit_composeTheme
+import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import kotlinx.coroutines.delay
 
 class SplashScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Habit_composeTheme {
+            HabitTrackerTheme  {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     SplashScreen()
                 }

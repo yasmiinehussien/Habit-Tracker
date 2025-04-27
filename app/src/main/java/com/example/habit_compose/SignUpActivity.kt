@@ -28,13 +28,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.habit_compose.ui.theme.Habit_composeTheme
 import com.google.android.gms.auth.api.signin.*
 import com.google.firebase.auth.*
 
 import androidx.activity.result.ActivityResultLauncher
-
-
+import com.example.habit_compose.ui.theme.HabitTrackerTheme
 
 
 class SignUpActivity : ComponentActivity() {
@@ -74,7 +72,7 @@ class SignUpActivity : ComponentActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
         setContent {
-            Habit_composeTheme {
+            HabitTrackerTheme {
                 SignUpScreen(this, auth, googleSignInClient, googleSignInLauncher)
             }
         }
