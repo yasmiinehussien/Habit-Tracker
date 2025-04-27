@@ -80,23 +80,22 @@ fun ProfileScreen() {
             Spacer(modifier = Modifier.width(16.dp))
             val username = getUsername()
 
-            Text(
-                text = ", $username",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
-
 
             Column(
                 modifier = Modifier
-                    .height(150.dp),
+                    .height(150.dp)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.Bottom
             ) {
+                Text(
+                    text = "$username",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
                 Button(
                     onClick = { launcher.launch("image/*") },
-                    modifier = Modifier.align(Alignment.End)
-                    ,
+                    modifier = Modifier.align(Alignment.End),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B5EDC))
                 ) {
                     Text(
@@ -106,6 +105,7 @@ fun ProfileScreen() {
                     )
                 }
             }
+
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -144,7 +144,6 @@ fun ProfileScreen() {
                 )
 
 
-
             )
         }
         Spacer(modifier = Modifier.height(32.dp))
@@ -180,7 +179,6 @@ fun ProfileScreen() {
                     checkedTrackColor = Color(0xFF7831DC),
                     uncheckedTrackColor = Color(0xFFD0D0D0)
                 )
-
 
 
             )

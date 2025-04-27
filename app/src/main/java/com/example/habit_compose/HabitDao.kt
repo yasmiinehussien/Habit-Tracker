@@ -14,5 +14,7 @@ interface HabitDao {
     @Query("SELECT * FROM habits WHERE id = :id")
     fun getHabitById(id: Int): Habit
 
+    @Query("SELECT * FROM habits WHERE daysSelected = :selectedDay")
+    fun getHabitsBySelectedDay(selectedDay: String): List<Habit>
 
 }

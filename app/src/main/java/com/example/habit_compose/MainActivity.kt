@@ -26,31 +26,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -72,9 +67,9 @@ import androidx.navigation.NavController
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 
 class MainActivity : ComponentActivity() {
@@ -164,6 +159,15 @@ fun HomeScreen(navController: NavController)
     val weekDates = calenderData.getWeekDates()
 
     val selectedDate = rememberSaveable { mutableStateOf(today) }
+    // Fetch habits for the selected date
+    fun fetchHabitsForSelectedDate(date: LocalDate) {
+        scope.launch(Dispatchers.IO) {
+            val habitsForDate = db.habitDao().getHabitsBySelectedDay(date.toString())
+            withContext(Dispatchers.Main) {
+                savedHabits = habitsForDate
+            }
+        }
+    }
 
     Column {
         HeadIcons()
@@ -174,7 +178,10 @@ fun HomeScreen(navController: NavController)
                     day = date.day,
                     date = date.date.dayOfMonth.toString(),
                     isSelected = date.date == selectedDate.value,
-                    onClick = { selectedDate.value = date.date }
+                    onClick = {
+                        selectedDate.value = date.date
+
+                        fetchHabitsForSelectedDate(date.date)}
                 )
             }
         }
@@ -213,8 +220,8 @@ fun HeadIcons() {
 
         }
         Text(
-            // default for ui ,should take username from firebase
-            text = "Hi ,$username ",
+            
+            text = " $username ",
             fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
             fontSize = 21.sp,
         )
@@ -231,13 +238,14 @@ fun HeadIcons() {
 @Composable
 fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit) {
     Card(
-        onClick = onClick,
+        onClick = {},
         modifier = Modifier
             .padding(vertical = 3.dp, horizontal = 14.dp)
             .clip(RoundedCornerShape(22.dp)),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) Color.Black else Color(0xFFF6FEFF)
-        )
+        ),
+
     )
     {
         Column(
@@ -258,7 +266,6 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     .align(Alignment.CenterHorizontally)
 
                     .background(Color(0xFFFDFDFD))
-
             ) {
 
                 Text(
@@ -291,80 +298,6 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
     }
 }
 
-
-@Composable
-fun HabitList() {
-
-    Box(
-        modifier = Modifier
-            .padding(16.dp)
-            .padding(top=5.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .shadow(22.dp, RoundedCornerShape(20.dp), clip = false)
-            .background(Color.White)
-            .fillMaxSize()
-    ) {
-        if(habitCategories.isEmpty()){
-            Column(
-
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(all = 8.dp)
-                    .fillMaxSize()
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.lifestyle),
-                    contentDescription = "image life style ",
-                    modifier = Modifier
-                        .size(120.dp)
-                        .padding(8.dp),
-                    contentScale = ContentScale.Crop
-                )
-                Text(
-                    text = "You don't have any habits",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Black,
-                    modifier = Modifier.padding(top = 16.dp)
-
-                )
-                Text(
-                    text = "Let's add new habit",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 9.dp)
-                )
-            }
-        }else{
-
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Habits List", fontSize = 23.sp)
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement =  Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(top = 20.dp, bottom = 20.dp),
-
-
-                    ) {
-                    itemsIndexed(habitCategories) { index, habit ->
-                        HabitCardStyled(habit = habit, index = index) {
-
-                        }
-                    }
-                }
-
-
-
-
-            }
-        }
-    }
-
-}
-
-@Composable
-fun HabitCardGridStyle(){}
 
 @Preview(showBackground = true, showSystemUi = true, device = "spec:width=411dp,height=891dp")
 @Composable
@@ -401,7 +334,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                 translationY = animatedOffset.value
             }
             .fillMaxWidth()
-            .then(Modifier.widthIn(max = 400.dp)) // ✅ Wider card with limit
+            .then(Modifier.widthIn(max = 450.dp)) // ✅ Wider card with limit
             .height(260.dp)
             .padding(horizontal = 8.dp)
             .shadow(12.dp, RoundedCornerShape(26.dp)),
