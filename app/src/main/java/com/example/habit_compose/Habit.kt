@@ -10,9 +10,11 @@ data class Habit(
     val name: String,
     val repeatFrequency: String,
     val daysSelected: String,
-    val timeOfDay: String,
+    val endDate: String?,
     val endHabitOn: Boolean,
     val setReminder: Boolean,
+    val howOftenPerDay: Int,
     val isRegularHabit: Boolean,
-    val categoryTag: String
+    val categoryTag: String,
+    val reminderTime: String?
 )

@@ -12,9 +12,17 @@ interface HabitDao {
     suspend fun getAllHabits(): List<Habit>
 
     @Query("SELECT * FROM habits WHERE id = :id")
-    fun getHabitById(id: Int): Habit
+    suspend fun getHabitById(id: Int): Habit
 
-    @Query("SELECT * FROM habits WHERE daysSelected = :selectedDay")
-    fun getHabitsBySelectedDay(selectedDay: String): List<Habit>
+
+    @Query("SELECT * FROM habits WHERE daysSelected LIKE '%' || :selectedDay || '%'")
+    suspend fun getHabitsBySelectedDay(selectedDay: String): List<Habit>
+
+    @Query("SELECT * FROM habits WHERE isRegularHabit = 1")
+    suspend fun getAllRegularHabits(): List<Habit>
+
+    @Query("SELECT * FROM habits WHERE isRegularHabit = 0")
+    suspend fun getAllOneTimeTasks(): List<Habit>
+
 
 }

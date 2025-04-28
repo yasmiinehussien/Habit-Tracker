@@ -1,4 +1,9 @@
 package com.example.habit_compose
+import android.app.TimePickerDialog
+import android.widget.Toast
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,6 +13,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -35,26 +44,28 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
     val DarkGreen = Color(0xFF663AB6)
     val LightGreenSurface = Color(0xFFE0F2E9)
 
+    var showTimePicker by remember { mutableStateOf(false) }
+    var reminderTime by remember { mutableStateOf<String?>(null) }
+
+
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
 
+    var showDaysSelection by remember { mutableStateOf(false) }
+    var howOftenPerDay by remember { mutableStateOf(1) }
+
+    var endDate by remember { mutableStateOf<String?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
 
     var name by remember { mutableStateOf("") }
-    var selectedIcon by remember { mutableStateOf("\uD83C\uDFC8") }
-    var selectedColor by remember { mutableStateOf(Color.Yellow) }
     var repeatFrequency by remember { mutableStateOf("Daily") }
     var daysSelected by remember { mutableStateOf(setOf<String>()) }
-    var timeOfDay by remember { mutableStateOf("Morning") }
     var endHabitOn by remember { mutableStateOf(false) }
     var setReminder by remember { mutableStateOf(false) }
     var isRegularHabit by remember { mutableStateOf(true) }
 
-    val icons = listOf("\uD83C\uDFC8", "\uD83C\uDFC6", "\uD83C\uDF96", "\uD83C\uDFC0", "\uD83D\uDEFC", "\uD83D\uDCDA", "\uD83C\uDFB5", "\uD83D\uDCAA", "\uD83E\uDEF8", "\uD83C\uDFA8", "\uD83D\uDCDD", "\uD83D\uDCC5", "\uD83D\uDCBC", "\uD83C\uDF4E", "\uD83E\uDEA9")
-    val colors = listOf(
-        Color(0xFFFFF9C4), Color(0xFFFFECB3), Color(0xFFD7CCC8), Color(0xFFFFCDD2),
-        Color(0xFFF8BBD0), Color(0xFFE1BEE7), Color(0xFFBBDEFB), Color(0xFFB2EBF2),
-        Color(0xFFC8E6C9), Color(0xFFE6EE9C), Color(0xFFFFF176), Color(0xFFE1F5FE)
-    )
+
     val days = listOf("S", "M", "T", "W", "T", "F", "S")
 
     Scaffold(
@@ -68,23 +79,44 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
+                    .padding(5.dp)
             ) {
                 Button(
-                    onClick = { CoroutineScope(Dispatchers.IO).launch {
+                    onClick = {
+                        if (name.trim().isEmpty()) {
+                            Toast.makeText(context, "Please enter  habit or task name!", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (repeatFrequency == "Weekly" && daysSelected.isEmpty()) {
+                            Toast.makeText(context, "Please select at least one day for weekly habits!", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (!isRegularHabit && daysSelected.size != 1) {
+                            Toast.makeText(context, "Please select exactly one day for the one-time task!", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        CoroutineScope(Dispatchers.IO).launch {
                         db.habitDao().insertHabit(
                             Habit(
                                 name = name,
                                 repeatFrequency = repeatFrequency,
                                 daysSelected = daysSelected.joinToString(","),
-                                timeOfDay = timeOfDay,
+                                endDate = endDate,
                                 endHabitOn = endHabitOn,
                                 setReminder = setReminder,
                                 isRegularHabit = isRegularHabit,
-                                categoryTag = categoryTag
+                                categoryTag = categoryTag,
+                                howOftenPerDay = howOftenPerDay,
+                                reminderTime = reminderTime,
                             )
                         )
                         withContext(Dispatchers.Main) {
+                            if (setReminder && reminderTime != null) {
+                                scheduleHabitNotification(context, name, reminderTime!!, daysSelected.joinToString(","))
+                            }
+
+
+                            delay(300) // <-- 300 ms to allow saving to complete
                             navController.navigate("tabs") {
                                 popUpTo("tabs") { inclusive = true }
                                 launchSingleTop = true
@@ -134,7 +166,30 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                                 .weight(1f)
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(if (selected) GreenPrimary else Color.Transparent)
-                                .clickable { isRegularHabit = label == "Regular Habit" }
+                                .clickable {
+                                    isRegularHabit = label == "Regular Habit"
+                                    name = "" // Clear the name field
+                                    daysSelected = emptySet() // Clear selected days
+                                    howOftenPerDay = 1 // Reset how often
+                                    endDate = null
+                                    endHabitOn = false
+                                    reminderTime = null
+                                    setReminder=false
+
+
+
+                                    if (isRegularHabit) {
+                                        repeatFrequency = "Daily"
+                                        showDaysSelection = false
+                                        endHabitOn = false
+                                    } else {
+                                        repeatFrequency = ""
+                                        showDaysSelection = true
+                                        // endHabitOn = false
+                                    }
+
+                                }
+
                                 .padding(vertical = 14.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -149,7 +204,7 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Habit Name", style = MaterialTheme.typography.labelMedium)
+            Text(if (isRegularHabit) "Habit Name" else "Task Name", style = MaterialTheme.typography.labelMedium)
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -161,58 +216,115 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
             )
 
 
-            Text("Repeat", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("Daily", "Weekly", "Monthly").forEach { frequency ->
-                    AssistChip(
-                        onClick = { repeatFrequency = frequency },
-                        label = { Text(frequency) },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = if (repeatFrequency == frequency) GreenPrimary else LightGreenSurface,
-                            labelColor = if (repeatFrequency == frequency) Color.White else Color.Black
-                        ),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
+            if (isRegularHabit) {
+                Text("Repeat", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("Daily", "Weekly", "Monthly").forEach { frequency ->
+                        AssistChip(
+                            onClick = {
+                                repeatFrequency = frequency
+                                showDaysSelection = frequency != "Daily"
 
-            Text("On these days", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                days.forEachIndexed { index, day ->
-                    val selected = daysSelected.contains(index.toString())
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (selected) GreenPrimary else LightGreenSurface)
-                            .clickable {
-                                daysSelected = if (selected) daysSelected - index.toString()
-                                else daysSelected + index.toString()
+                                if (frequency == "Daily") {
+                                    daysSelected = setOf("0", "1", "2", "3", "4", "5", "6")
+                                }
                             },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(day, color = if (selected) Color.White else Color.Black)
+
+                            label = { Text(frequency) },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = if (repeatFrequency == frequency) GreenPrimary else LightGreenSurface,
+                                labelColor = if (repeatFrequency == frequency) Color.White else Color.Black
+                            ),
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
 
-            Text("Do it at:", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("Morning", "Afternoon", "Evening").forEach { time ->
-                    AssistChip(
-                        onClick = { timeOfDay = time },
-                        label = { Text(time) },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = if (timeOfDay == time) GreenPrimary else LightGreenSurface,
-                            labelColor = if (timeOfDay == time) Color.White else Color.Black
-                        ),
-                        modifier = Modifier.weight(1f)
-                    )
+
+
+            if (showDaysSelection) {
+                Text(if (isRegularHabit) "on these Days" else "on Day", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    days.forEachIndexed { index, day ->
+                        val selected = daysSelected.contains(index.toString())
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (selected) GreenPrimary else LightGreenSurface)
+                                .clickable {
+                                    if (isRegularHabit) {
+                                        // allow multi-select for Regular
+                                        daysSelected = if (selected) daysSelected - index.toString()
+                                        else daysSelected + index.toString()
+                                    } else {
+                                        // only allow 1 day for One-Time Task
+                                        daysSelected = setOf(index.toString())
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(day, color = if (selected) Color.White else Color.Black)
+                        }
+                    }
+
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("How often per day?", style = MaterialTheme.typography.labelMedium)
+
+            var expanded by remember { mutableStateOf(false) }
+            val options = listOf(1, 2, 3, 4, 5)
+
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .background(LightGreenSurface, RoundedCornerShape(12.dp))
+                .border(1.dp, GreenPrimary, RoundedCornerShape(12.dp))
+                .clickable { expanded = true }
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "$howOftenPerDay times",
+                        style = MaterialTheme.typography.bodyLarge.copy(color = Color.Black)
+                    )
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = GreenPrimary
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .background(Color.White)
+                        .border(1.dp, GreenPrimary, RoundedCornerShape(12.dp))
+                ) {
+                    options.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text("$option times", color = Color.Black) },
+                            onClick = {
+                                howOftenPerDay = option
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+
+
+
 
             Spacer(modifier = Modifier.height(24.dp))
             val switchColors = SwitchDefaults.colors(
@@ -222,23 +334,151 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                 uncheckedTrackColor = DarkGreen.copy(alpha = 0.4f)
             )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Switch(
-                    checked = endHabitOn,
-                    onCheckedChange = { endHabitOn = it },
-                    colors = switchColors
-                )
-                Text("End Habit on", modifier = Modifier.padding(start = 8.dp))
+            if (isRegularHabit) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Switch(
+                        checked = endHabitOn,
+                        onCheckedChange = { isChecked ->
+                            endHabitOn = isChecked
+                            if (isChecked) {
+                                showDatePicker = true // open calendar
+                            } else {
+                                endDate = null // if user turns off, remove selected date
+                            }
+                        },
+                        colors = switchColors
+                    )
+
+                    Text("End Habit on", modifier = Modifier.padding(start = 8.dp))
+                }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(
                     checked = setReminder,
-                    onCheckedChange = { setReminder = it },
+                    onCheckedChange = { isChecked ->
+                        setReminder = isChecked
+                        if (isChecked) {
+                            showTimePicker = true // open time picker
+                        } else {
+                            reminderTime = null // clear if user disables
+                        }
+                    },
                     colors = switchColors
                 )
+
                 Text("Set Reminder", modifier = Modifier.padding(start = 8.dp))
             }
+
+// Show TimePicker if needed
+            if (showTimePicker) {
+                val context = LocalContext.current
+                LaunchedEffect(Unit) {
+                    val now = java.util.Calendar.getInstance()
+                    val dialog = TimePickerDialog(
+                        context,
+                        { _, hourOfDay, minute ->
+                            val isPM = hourOfDay >= 12
+                            val hourFormatted = if (hourOfDay % 12 == 0) 12 else hourOfDay % 12
+                            val amPm = if (isPM) "PM" else "AM"
+                            reminderTime = String.format("%02d:%02d %s", hourFormatted, minute, amPm)
+                            showTimePicker = false
+                        },
+                        now.get(java.util.Calendar.HOUR_OF_DAY),
+                        now.get(java.util.Calendar.MINUTE),
+                        true
+                    )
+
+                    dialog.setOnCancelListener {
+                        showTimePicker = false
+                        setReminder = false //
+                    }
+
+                    dialog.show()
+                }
+            }
+
+
+
+//  Show the selected reminder time if set
+            if (reminderTime != null) {
+                Text(
+                    text = "Reminder Time: $reminderTime",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(start = 8.dp, top = 8.dp)
+                )
+            }
+
+
+// DatePickerDialog must be OUTSIDE Row
+            if (showDatePicker) {
+                val today = remember { java.time.LocalDate.now() }
+                val datePickerState = rememberDatePickerState(
+                    initialSelectedDateMillis = System.currentTimeMillis()
+                )
+
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                val selectedDate = java.time.Instant.ofEpochMilli(millis)
+                                    .atZone(java.time.ZoneId.systemDefault())
+                                    .toLocalDate()
+
+                                if (!selectedDate.isBefore(today)) {
+                                    endDate = selectedDate.toString()
+                                } else {
+
+                                    Toast.makeText(
+                                        context,
+                                        "Please select a future date only.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    endHabitOn=false
+                                }
+                            }
+                            showDatePicker = false
+                        }) {
+                            Text("OK")
+                        }
+                    }
+                    ,
+                    dismissButton = {
+                        TextButton(onClick = {
+                            showDatePicker = false
+                            endHabitOn = false //
+                        }) {
+                            Text("Cancel")
+                        }
+                    }
+
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
+
+            if (endDate != null) {
+                val formattedDate = try {
+                    LocalDate.parse(endDate).format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))
+                } catch (e: Exception) {
+                    endDate // fallback to raw if parsing failed
+                }
+
+                Text(
+                    text = "Selected End Date: $formattedDate",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(start = 8.dp, top = 8.dp)
+                )
+            }
+
+
+
+
+
+
 
             Spacer(modifier = Modifier.height(100.dp))
         }

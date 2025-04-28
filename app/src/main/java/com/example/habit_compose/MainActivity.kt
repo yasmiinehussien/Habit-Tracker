@@ -111,7 +111,6 @@ fun HabitListFromDb(habits: List<Habit>,navController: NavController) {
             }
         } else {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Your Habits", fontSize = 23.sp)
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -136,43 +135,56 @@ fun getUsername(): String {
 
 
 @Composable
-fun HomeScreen(navController: NavController)
-{
+fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
+
+    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
     var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(true) {
+    val calenderData = remember { CalenderData() }
+    val today = calenderData.today
+    val weekDates = calenderData.getWeekDates()
+    val selectedDate = rememberSaveable { mutableStateOf(today) }
+
+    fun loadHabits() {
         scope.launch(Dispatchers.IO) {
-            val habits = db.habitDao().getAllHabits()
+            val habits = db.habitDao().getAllRegularHabits()
             withContext(Dispatchers.Main) {
                 savedHabits = habits
             }
         }
     }
 
-
-    val calenderData = CalenderData()
-    val today = calenderData.today
-    val weekDates = calenderData.getWeekDates()
-
-    val selectedDate = rememberSaveable { mutableStateOf(today) }
-    // Fetch habits for the selected date
-    fun fetchHabitsForSelectedDate(date: LocalDate) {
+    fun loadTasks() {
         scope.launch(Dispatchers.IO) {
-            val habitsForDate = db.habitDao().getHabitsBySelectedDay(date.toString())
+            val tasks = db.habitDao().getAllOneTimeTasks()
             withContext(Dispatchers.Main) {
-                savedHabits = habitsForDate
+                savedHabits = tasks
             }
         }
     }
 
+    // Load based on tab
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 0) {
+            loadHabits()
+        } else {
+            loadTasks()
+        }
+    }
+
+    val GreenPrimary = Color(0xFF7A49D5)
+    val LightGreenSurface = Color(0xFFE0F2E9)
+
     Column {
         HeadIcons()
 
-        LazyRow {
+        LazyRow(
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
             items(weekDates) { date ->
                 DateBar(
                     day = date.day,
@@ -181,14 +193,64 @@ fun HomeScreen(navController: NavController)
                     onClick = {
                         selectedDate.value = date.date
 
-                        fetchHabitsForSelectedDate(date.date)}
+                        if (selectedTab == 0) {
+                            // Only reload habits when in habits tab
+                            scope.launch(Dispatchers.IO) {
+                                val dayOfWeekIndex = (date.date.dayOfWeek.value % 7).toString()
+                                val habitsForDay = db.habitDao().getHabitsBySelectedDay(dayOfWeekIndex)
+                                withContext(Dispatchers.Main) {
+                                    savedHabits = habitsForDay
+                                }
+                            }
+                        }
+                    }
                 )
             }
         }
 
+        // 🟪 Tabs below the Calendar now
+        Card(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = LightGreenSurface)
+        ) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                listOf("Habits", "Tasks").forEachIndexed { index, title ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(if (selectedTab == index) GreenPrimary else Color.Transparent)
+                            .clickable {
+                                selectedTab = index
+                            }
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = title,
+                            color = if (selectedTab == index) Color.White else Color.Black,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
+        }
+
+        // Habit/Task Cards
         HabitListFromDb(habits = savedHabits, navController = navController)
     }
 }
+
+
 
 
 @Composable
@@ -220,7 +282,7 @@ fun HeadIcons() {
 
         }
         Text(
-            
+
             text = " $username ",
             fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
             fontSize = 21.sp,
@@ -238,7 +300,7 @@ fun HeadIcons() {
 @Composable
 fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit) {
     Card(
-        onClick = {},
+        onClick = onClick,
         modifier = Modifier
             .padding(vertical = 3.dp, horizontal = 14.dp)
             .clip(RoundedCornerShape(22.dp)),
@@ -246,7 +308,7 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
             containerColor = if (isSelected) Color.Black else Color(0xFFF6FEFF)
         ),
 
-    )
+        )
     {
         Column(
             modifier = Modifier
