@@ -83,46 +83,61 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
             ) {
                 Button(
                     onClick = {
-                        if (name.trim().isEmpty()) {
-                            Toast.makeText(context, "Please enter  habit or task name!", Toast.LENGTH_SHORT).show()
-                            return@Button
-                        }
-                        if (repeatFrequency == "Weekly" && daysSelected.isEmpty()) {
-                            Toast.makeText(context, "Please select at least one day for weekly habits!", Toast.LENGTH_SHORT).show()
-                            return@Button
-                        }
-                        if (!isRegularHabit && daysSelected.size != 1) {
-                            Toast.makeText(context, "Please select exactly one day for the one-time task!", Toast.LENGTH_SHORT).show()
-                            return@Button
-                        }
                         CoroutineScope(Dispatchers.IO).launch {
-                        db.habitDao().insertHabit(
-                            Habit(
-                                name = name,
-                                repeatFrequency = repeatFrequency,
-                                daysSelected = daysSelected.joinToString(","),
-                                endDate = endDate,
-                                endHabitOn = endHabitOn,
-                                setReminder = setReminder,
-                                isRegularHabit = isRegularHabit,
-                                categoryTag = categoryTag,
-                                howOftenPerDay = howOftenPerDay,
-                                reminderTime = reminderTime,
-                            )
-                        )
-                        withContext(Dispatchers.Main) {
-                            if (setReminder && reminderTime != null) {
-                                scheduleHabitNotification(context, name, reminderTime!!, daysSelected.joinToString(","))
+                            val existingNames = if (isRegularHabit) {
+                                db.habitDao().getAllRegularHabits().map { it.name.trim().lowercase() }
+                            } else {
+                                db.habitDao().getAllOneTimeTasks().map { it.name.trim().lowercase() }
                             }
 
+                            withContext(Dispatchers.Main) {
+                                if (name.trim().isEmpty()) {
+                                    Toast.makeText(context, "Please enter habit or task name!", Toast.LENGTH_SHORT).show()
+                                    return@withContext
+                                }
+                                if (name.trim().lowercase() in existingNames) {
+                                    Toast.makeText(context, "This ${if (isRegularHabit) "habit" else "task"} name already exists! Please choose another.", Toast.LENGTH_SHORT).show()
+                                    return@withContext
+                                }
+                                if (repeatFrequency == "Weekly" && daysSelected.isEmpty()) {
+                                    Toast.makeText(context, "Please select at least one day for weekly habits!", Toast.LENGTH_SHORT).show()
+                                    return@withContext
+                                }
+                                if (!isRegularHabit && daysSelected.size != 1) {
+                                    Toast.makeText(context, "Please select exactly one day for the one-time task!", Toast.LENGTH_SHORT).show()
+                                    return@withContext
+                                }
 
-                            delay(300) // <-- 300 ms to allow saving to complete
-                            navController.navigate("tabs") {
-                                popUpTo("tabs") { inclusive = true }
-                                launchSingleTop = true
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    db.habitDao().insertHabit(
+                                        Habit(
+                                            name = name.trim(),
+                                            repeatFrequency = repeatFrequency,
+                                            daysSelected = daysSelected.joinToString(","),
+                                            endDate = endDate,
+                                            endHabitOn = endHabitOn,
+                                            setReminder = setReminder,
+                                            isRegularHabit = isRegularHabit,
+                                            categoryTag = categoryTag,
+                                            howOftenPerDay = howOftenPerDay,
+                                            reminderTime = reminderTime,
+                                        )
+                                    )
+                                    withContext(Dispatchers.Main) {
+                                        if (setReminder && reminderTime != null) {
+                                            scheduleHabitNotification(context, name, reminderTime!!, daysSelected.joinToString(","))
+                                        }
+                                        delay(300)
+                                        navController.navigate("tabs") {
+                                            popUpTo("tabs") { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                }
                             }
                         }
-                    } },
+                    }
+                    ,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -219,7 +234,7 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
             if (isRegularHabit) {
                 Text("Repeat", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Daily", "Weekly", "Monthly").forEach { frequency ->
+                    listOf("Daily", "Weekly").forEach { frequency ->
                         AssistChip(
                             onClick = {
                                 repeatFrequency = frequency
