@@ -107,6 +107,7 @@ fun LoginScreen(activity: ComponentActivity) {
                                 activity.startActivity(intent)
                                 activity.finish() // Optional: close the login screen
 
+
                             } else {
                                 val errorMessage = when (val exception = task.exception) {
                                     is FirebaseAuthInvalidUserException -> {

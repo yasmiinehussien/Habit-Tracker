@@ -64,7 +64,7 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
     var endHabitOn by remember { mutableStateOf(false) }
     var setReminder by remember { mutableStateOf(false) }
     var isRegularHabit by remember { mutableStateOf(true) }
-
+    var taskDate by remember { mutableStateOf<String?>(null) }
 
     val days = listOf("S", "M", "T", "W", "T", "F", "S")
 
@@ -121,8 +121,10 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                                             categoryTag = categoryTag,
                                             howOftenPerDay = howOftenPerDay,
                                             reminderTime = reminderTime,
+                                            taskDate = if (!isRegularHabit && daysSelected.size == 1) daysSelected.first() else null
                                         )
                                     )
+
                                     withContext(Dispatchers.Main) {
                                         if (setReminder && reminderTime != null) {
                                             scheduleHabitNotification(context, name, reminderTime!!, daysSelected.joinToString(","))

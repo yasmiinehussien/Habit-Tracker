@@ -15,8 +15,11 @@ interface HabitDao {
     suspend fun getHabitById(id: Int): Habit
 
 
-    @Query("SELECT * FROM habits WHERE daysSelected LIKE '%' || :selectedDay || '%'")
+    //@Query("SELECT * FROM habits WHERE daysSelected LIKE '%' || :selectedDay || '%'")
+   // suspend fun getHabitsBySelectedDay(selectedDay: String): List<Habit>
+    @Query("SELECT * FROM habits WHERE ',' || daysSelected || ',' LIKE '%,' || :selectedDay || ',%'")
     suspend fun getHabitsBySelectedDay(selectedDay: String): List<Habit>
+
 
     @Query("SELECT * FROM habits WHERE isRegularHabit = 1")
     suspend fun getAllRegularHabits(): List<Habit>
@@ -24,5 +27,10 @@ interface HabitDao {
     @Query("SELECT * FROM habits WHERE isRegularHabit = 0")
     suspend fun getAllOneTimeTasks(): List<Habit>
 
+    @Query("SELECT * FROM habits WHERE isRegularHabit = 0 AND taskDate = :selectedDate")
+    suspend fun getTasksBySelectedDate(selectedDate: String): List<Habit>
+
+    @Query("SELECT * FROM habits WHERE isRegularHabit = 0 AND date(taskDate) = :selectedDate")
+    suspend fun getOneTimeTasksByDate(selectedDate: String): List<Habit>
 
 }

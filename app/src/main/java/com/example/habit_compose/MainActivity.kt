@@ -63,6 +63,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.intl.Locale
 import androidx.navigation.NavController
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import com.google.firebase.auth.FirebaseAuth
@@ -70,6 +71,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 class MainActivity : ComponentActivity() {
@@ -149,31 +151,62 @@ fun HomeScreen(navController: NavController) {
     val weekDates = calenderData.getWeekDates()
     val selectedDate = rememberSaveable { mutableStateOf(today) }
 
-    fun loadHabits() {
-        scope.launch(Dispatchers.IO) {
-            val habits = db.habitDao().getAllRegularHabits()
-            withContext(Dispatchers.Main) {
-                savedHabits = habits
-            }
-        }
-    }
+//    fun loadHabits() {
+//        scope.launch(Dispatchers.IO) {
+//            val habits = db.habitDao().getAllRegularHabits()
+//            withContext(Dispatchers.Main) {
+//                savedHabits = habits
+//            }
+//        }
+//    }
+fun loadHabits() {
+    scope.launch(Dispatchers.IO) {
+        val habits = db.habitDao().getAllRegularHabits()
+        val today = LocalDate.now()
 
-    fun loadTasks() {
-        scope.launch(Dispatchers.IO) {
-            val tasks = db.habitDao().getAllOneTimeTasks()
-            withContext(Dispatchers.Main) {
-                savedHabits = tasks
-            }
+        val filteredHabits = habits.filter { habit ->
+            habit.endDate.isNullOrEmpty() ||
+                    LocalDate.parse(habit.endDate).isAfter(today) ||
+                    LocalDate.parse(habit.endDate).isEqual(today)
+        }
+
+        withContext(Dispatchers.Main) {
+            savedHabits = filteredHabits
         }
     }
+}
+
+
+//    fun loadTasks() {
+//        scope.launch(Dispatchers.IO) {
+//            val tasks = db.habitDao().getAllOneTimeTasks()
+//            withContext(Dispatchers.Main) {
+//                savedHabits = tasks
+//            }
+//        }
+//    }
+fun loadTasks() {
+    scope.launch(Dispatchers.IO) {
+        val tasks = db.habitDao().getTasksBySelectedDate(selectedDate.value.toString())
+        withContext(Dispatchers.Main) {
+            savedHabits = tasks
+        }
+    }
+}
+
+
+
 
     // Load based on tab
     LaunchedEffect(selectedTab) {
         if (selectedTab == 0) {
             loadHabits()
         } else {
-            loadTasks()
+
+
+            loadTasks() // تمرير التاريخ الحالي إلى loadTasks
         }
+
     }
 
     val GreenPrimary = Color(0xFF7A49D5)
@@ -305,17 +338,12 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
             .padding(vertical = 3.dp, horizontal = 14.dp)
             .clip(RoundedCornerShape(22.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color.Black else Color(0xFFF6FEFF)
+            containerColor = if (isSelected) Color(0xFF6200EA) else Color(0xFFF6FEFF)
         ),
-
-        )
-    {
+    ) {
         Column(
             modifier = Modifier
-                .width(50.dp)
-                .height(68.dp)
                 .padding(4.dp)
-
         ) {
             Box(
                 modifier = Modifier
@@ -326,39 +354,36 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     )
                     .clip(CircleShape)
                     .align(Alignment.CenterHorizontally)
-
                     .background(Color(0xFFFDFDFD))
             ) {
-
                 Text(
                     text = date,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(2.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-
-                    )
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    ),
+                    color = if (isSelected) Color.White else Color.Black
+                )
             }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 9.dp)
-
             ) {
                 Text(
                     text = day,
                     modifier = Modifier.align(Alignment.Center),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF55C9D7)
-
+                    color = if (isSelected) Color.White else Color(0xFF55C9D7)
                 )
-
-
             }
-
         }
     }
 }
+
 
 
 @Preview(showBackground = true, showSystemUi = true, device = "spec:width=411dp,height=891dp")
