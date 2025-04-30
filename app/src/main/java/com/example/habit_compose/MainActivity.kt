@@ -75,83 +75,87 @@ import java.time.format.DateTimeFormatter
 
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            HabitTrackerTheme  {
-                val navController = rememberNavController()
+                    override fun onCreate(savedInstanceState: Bundle?) {
+                        super.onCreate(savedInstanceState)
+                        enableEdgeToEdge()
+                        setContent {
+                            HabitTrackerTheme  {
+                                val navController = rememberNavController()
 
-                // HabitCategoryScreen(navController = navController)
-                NavScreen()
+                                // HabitCategoryScreen(navController = navController)
 
-            }
-        }
+                                NavScreen()
 
-    }
-}
+                            }
+                        }
 
-
-
-@Composable
-fun HabitListFromDb(habits: List<Habit>,navController: NavController) {
-    val categoryMap = habitCategories.associateBy { it.title }
-    Box(
-        modifier = Modifier
-            .padding(16.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .fillMaxSize()
-    ) {
-        if (habits.isEmpty()) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Text("No habits yet", color = Color.Gray)
-            }
-        } else {
-            Column(modifier = Modifier.padding(16.dp)) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(20.dp)
-                ) {
-                    items(habits) { habit ->
-                        val category = categoryMap[habit.categoryTag]
-                        // or habit.categoryTag
-                        HabitCardFromDb(habit, category, navController)
                     }
                 }
-            }
-        }
-    }
-}
-fun getUsername(): String {
-    val user = FirebaseAuth.getInstance().currentUser
-    return user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest"
-}
 
 
 
-@Composable
-fun HomeScreen(navController: NavController) {
-    val context = LocalContext.current
-    val db = remember { AppDatabase.getDatabase(context) }
+                @Composable
+                fun HabitListFromDb(habits: List<Habit>,navController: NavController,selectedDate: LocalDate) {
+                    val categoryMap = habitCategories.associateBy { it.title }
 
-    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
-    var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
+                    Box(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.White)
+                            .fillMaxSize()
+                    ) {
+                        if (habits.isEmpty()) {
+                            Column(
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Text("No habits yet", color = Color.Gray)
+                            }
+                        } else {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Fixed(2),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                    contentPadding = PaddingValues(20.dp)
+                                ) {
+                                    items(habits) { habit ->
+                                        val category = categoryMap[habit.categoryTag]
+                                        // or habit.categoryTag
+                                        HabitCardFromDb(habit, category, navController, selectedDate)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                fun getUsername(): String {
+                    val user = FirebaseAuth.getInstance().currentUser
+                    return user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest"
+                }
 
-    val scope = rememberCoroutineScope()
 
-    val calenderData = remember { CalenderData() }
-    val today = calenderData.today
-    val weekDates = calenderData.getWeekDates()
-    val selectedDate = rememberSaveable { mutableStateOf(today) }
 
-//    fun loadHabits() {
+                @Composable
+                fun HomeScreen(navController: NavController) {
+                    val context = LocalContext.current
+                    val db = remember { AppDatabase.getDatabase(context) }
+
+                    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
+                    var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
+
+                    val scope = rememberCoroutineScope()
+
+                    val calenderData = remember { CalenderData() }
+                    val today = calenderData.today
+                    val weekDates = calenderData.getWeekDates()
+                    val selectedDate = rememberSaveable { mutableStateOf(today) }
+
+
+
+                    //    fun loadHabits() {
 //        scope.launch(Dispatchers.IO) {
 //            val habits = db.habitDao().getAllRegularHabits()
 //            withContext(Dispatchers.Main) {
@@ -159,161 +163,144 @@ fun HomeScreen(navController: NavController) {
 //            }
 //        }
 //    }
-fun loadHabits() {
-    scope.launch(Dispatchers.IO) {
-        val habits = db.habitDao().getAllRegularHabits()
-        val today = LocalDate.now()
+                    fun loadHabits(dateSelected: LocalDate) {
+                        scope.launch(Dispatchers.IO) {
+                            val habits = db.habitDao().getAllRegularHabits()
 
-        val filteredHabits = habits.filter { habit ->
-            habit.endDate.isNullOrEmpty() ||
-                    LocalDate.parse(habit.endDate).isAfter(today) ||
-                    LocalDate.parse(habit.endDate).isEqual(today)
-        }
+                            val filteredHabits = habits.filter { habit ->
+                                habit.endDate.isNullOrEmpty() ||
+                                        LocalDate.parse(habit.endDate).isAfter(dateSelected) ||
+                                        LocalDate.parse(habit.endDate).isEqual(dateSelected)
+                            }
 
-        withContext(Dispatchers.Main) {
-            savedHabits = filteredHabits
-        }
-    }
-}
-
-
-//    fun loadTasks() {
-//        scope.launch(Dispatchers.IO) {
-//            val tasks = db.habitDao().getAllOneTimeTasks()
-//            withContext(Dispatchers.Main) {
-//                savedHabits = tasks
-//            }
-//        }
-//    }
-fun loadTasks() {
-    scope.launch(Dispatchers.IO) {
-        val tasks = db.habitDao().getTasksBySelectedDate(selectedDate.value.toString())
-        withContext(Dispatchers.Main) {
-            savedHabits = tasks
-        }
-    }
-}
-
-
-
-
-    // Load based on tab
-    LaunchedEffect(selectedTab) {
-        if (selectedTab == 0) {
-            loadHabits()
-        } else {
-
-
-            loadTasks() // تمرير التاريخ الحالي إلى loadTasks
-        }
-
-    }
-
-    val GreenPrimary = Color(0xFF7A49D5)
-    val LightGreenSurface = Color(0xFFE0F2E9)
-
-    Column {
-        HeadIcons()
-
-        LazyRow(
-            modifier = Modifier.padding(horizontal = 8.dp)
-        ) {
-            items(weekDates) { date ->
-                DateBar(
-                    day = date.day,
-                    date = date.date.dayOfMonth.toString(),
-                    isSelected = date.date == selectedDate.value,
-                    onClick = {
-                        selectedDate.value = date.date
-
-                        if (selectedTab == 0) {
-                            // Only reload habits when in habits tab
-                            scope.launch(Dispatchers.IO) {
-                                val dayOfWeekIndex = (date.date.dayOfWeek.value % 7).toString()
-                                val habitsForDay = db.habitDao().getHabitsBySelectedDay(dayOfWeekIndex)
-                                withContext(Dispatchers.Main) {
-                                    savedHabits = habitsForDay
-                                }
+                            withContext(Dispatchers.Main) {
+                                savedHabits = filteredHabits
                             }
                         }
                     }
-                )
-            }
-        }
 
-        // 🟪 Tabs below the Calendar now
-        Card(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = LightGreenSurface)
-        ) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                listOf("Habits", "Tasks").forEachIndexed { index, title ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(if (selectedTab == index) GreenPrimary else Color.Transparent)
-                            .clickable {
-                                selectedTab = index
+
+
+                    fun loadTasks() {
+                        scope.launch(Dispatchers.IO) {
+                            val tasks = db.habitDao().getAllOneTimeTasks()
+                            withContext(Dispatchers.Main) {
+                                savedHabits = tasks
                             }
-                            .padding(vertical = 12.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = title,
-                            color = if (selectedTab == index) Color.White else Color.Black,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp
+                        }
+                    }
+
+
+
+
+
+
+// Load based on tab
+                    LaunchedEffect(selectedTab) {
+                        if (selectedTab == 0) {
+                            loadHabits(selectedDate.value)
+                        } else {
+
+
+                            loadTasks() // تمرير التاريخ الحالي إلى loadTasks
+                        }
+
+                    }
+
+                    val GreenPrimary = Color(0xFF7A49D5)
+                    val LightGreenSurface = Color(0xFFE0F2E9)
+
+                    Column {
+                        HeadIcons()
+
+                        LazyRow(
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        ) {
+                            items(weekDates) { date ->
+                                DateBar(
+                                    day = date.day,
+                                    date = date.date.dayOfMonth.toString(),
+                                    isSelected = date.date == selectedDate.value,
+                                    onClick = {
+                                        selectedDate.value = date.date
+
+                                        if (selectedTab == 0) {
+                                            // Only reload habits when in habits tab
+                                            scope.launch(Dispatchers.IO) {
+                                                val dayOfWeekIndex = (date.date.dayOfWeek.value % 7).toString()
+                                                val habitsForDay = db.habitDao().getHabitsBySelectedDay(dayOfWeekIndex)
+                                                withContext(Dispatchers.Main) {
+                                                    savedHabits = habitsForDay
+                                                }
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                        // 🟪 Tabs below the Calendar now
+                        Card(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = LightGreenSurface)
+                        ) {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                listOf("Habits", "Tasks").forEachIndexed { index, title ->
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .background(if (selectedTab == index) GreenPrimary else Color.Transparent)
+                                            .clickable {
+                                                selectedTab = index
+                                            }
+                                            .padding(vertical = 12.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = title,
+                                            color = if (selectedTab == index) Color.White else Color.Black,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Habit/Task Cards
+                        //HabitListFromDb(habits = savedHabits, navController = navController)
+                        HabitListFromDb(
+                            habits = savedHabits,
+                            navController = navController,
+                            selectedDate = selectedDate.value
                         )
+
                     }
                 }
-            }
-        }
-
-        // Habit/Task Cards
-        HabitListFromDb(habits = savedHabits, navController = navController)
-    }
-}
 
 
 
 
-@Composable
-fun HeadIcons() {
-    val username = getUsername()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(all = 28.dp)
-            .padding(top = 10.dp)
-    ) {
-
-        Row(
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            IconButton(onClick = {/*to notification screen */ }) {
-
-                Icon(
-                    imageVector = Icons.TwoTone.Notifications,
-                    contentDescription = "notification icon",
-                    modifier = Modifier.size(28.dp),
-                    tint = Color.Gray,
-                )
-            }
+                @Composable
+                fun HeadIcons() {
+                    val username = getUsername()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(all = 28.dp)
+                            .padding(top = 10.dp)
+                    ) {
 
 
-        }
         Text(
 
             text = " $username ",
@@ -364,7 +351,7 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     ),
-                    color = if (isSelected) Color.White else Color.Black
+                   // color = if (isSelected) Color.White else Color.Black
                 )
             }
 
@@ -395,7 +382,7 @@ fun HomeScreenPreview() {
 
 
 @Composable
-fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavController) {
+fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavController, selectedDate: LocalDate) {
     val animatedAlpha = remember { Animatable(0f) }
     val animatedOffset = remember { Animatable(30f) }
 
@@ -415,6 +402,8 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
         modifier = Modifier
             .clickable {
                 navController.navigate("habit_details/${habit.id}")
+
+
             }
             .graphicsLayer {
                 alpha = animatedAlpha.value

@@ -17,5 +17,6 @@ data class Habit(
     val isRegularHabit: Boolean,
     val categoryTag: String,
     val reminderTime: String?,
-    val taskDate: String?
+    val taskDate: String?,
+    val completedCount: Int = 0
 )
