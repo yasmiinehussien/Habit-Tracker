@@ -63,14 +63,6 @@ fun StopwatchScreenWithBackground(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
 
-        Image(
-            painter = painterResource(id = R.drawable.color),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-
-
         StopwatchUI(
             isPlaying = isPlaying,
             seconds = seconds,
@@ -98,16 +90,16 @@ private fun StopwatchUI(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
+            .padding(12.dp),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(64.dp))
+        Spacer(modifier = Modifier.height(23.dp))
         Text(
             text = "Challenge yourself now !",
             style = MaterialTheme.typography.headlineMedium,
             color = Color.Black,
-            modifier = Modifier.padding(bottom = 32.dp)
+            modifier = Modifier.padding(bottom = 26.dp)
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -118,11 +110,11 @@ private fun StopwatchUI(
             modifier = Modifier.fillMaxWidth()
         ) {
             CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.displaySmall) {
-                AnimatedContent(targetState = hours) { Text(it, color = Color.White) }
-                Text(":", color = Color.White)
-                AnimatedContent(targetState = minutes) { Text(it, color = Color.White) }
-                Text(":", color = Color.White)
-                AnimatedContent(targetState = seconds) { Text(it, color = Color.White) }
+                AnimatedContent(targetState = hours) { Text(it, color = Color.Black) }
+                Text(":", color = Color.Black)
+                AnimatedContent(targetState = minutes) { Text(it, color = Color.Black) }
+                Text(":", color = Color.Black)
+                AnimatedContent(targetState = seconds) { Text(it, color = Color.Black) }
             }
         }
 
@@ -137,7 +129,7 @@ private fun StopwatchUI(
                     IconButton(
                         onClick = onPause,
                         modifier = Modifier
-                            .background(Color(0xFFBD7CA6), RoundedCornerShape(50))
+                            .background(Color(0xFF2196F3), RoundedCornerShape(50))
                             .padding(12.dp)
                     ) {
                         Icon(Icons.Filled.Pause, contentDescription = "Pause")
@@ -149,7 +141,7 @@ private fun StopwatchUI(
                             hasStarted = true
                         },
                         modifier = Modifier
-                            .background(Color(0xFF95709D), RoundedCornerShape(50))
+                            .background(Color(0xFF7A49D5), RoundedCornerShape(50))
                             .padding(12.dp)
                     ) {
                         Icon(Icons.Filled.PlayArrow, contentDescription = "Play")
@@ -164,15 +156,15 @@ private fun StopwatchUI(
                         hasStarted = false
                     },
                     modifier = Modifier
-                        .background(Color(0xFF95709D), RoundedCornerShape(50))
-                        .padding(12.dp)
+                        .background(Color(0xFF7A49D5), RoundedCornerShape(50))
+                        .padding(top=12.dp)
                 ) {
                     Icon(Icons.Filled.Stop, contentDescription = "Stop")
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(62.dp))
     }
 }
 

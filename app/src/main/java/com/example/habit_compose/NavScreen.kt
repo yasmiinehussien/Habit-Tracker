@@ -28,6 +28,7 @@ import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
+import kotlin.time.ExperimentalTime
 
 
 @Composable
@@ -107,7 +108,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
             }
         }
     ) { innerPadding ->
-        @OptIn(kotlin.time.ExperimentalTime::class)
+        @OptIn(ExperimentalTime::class)
         Box(modifier = Modifier.padding(innerPadding)) {
             NavHost(
                 navController = navController,
@@ -116,7 +117,8 @@ fun NavScreen(modifier: Modifier = Modifier) {
                 composable("tabs") {
                     when (selectedIndex) {
                         0 -> HomeScreen(navController)
-                        1 -> StopwatchScreen(viewModel = viewModel())
+                        1 -> TimerScreen()
+
                         2 -> HabitCategoryScreen(navController)
                         3-> HabitTrackerStatsScreen()
                         4 -> ProfileScreen()
