@@ -1,36 +1,23 @@
 package com.example.habit_compose
 
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.InsertChart
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.habit_compose.ui.theme.HabitComposeTheme
 import kotlin.time.ExperimentalTime
-import com.exyte.animatednavbar.AnimatedNavigationBar
-import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
-import com.exyte.animatednavbar.animation.indendshape.Height
-import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
 
 @ExperimentalTime
 @Composable
@@ -62,7 +49,6 @@ fun StopwatchScreenWithBackground(
     onStop: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-
         StopwatchUI(
             isPlaying = isPlaying,
             seconds = seconds,
@@ -98,7 +84,7 @@ private fun StopwatchUI(
         Text(
             text = "Challenge yourself now !",
             style = MaterialTheme.typography.headlineMedium,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(bottom = 26.dp)
         )
 
@@ -110,11 +96,17 @@ private fun StopwatchUI(
             modifier = Modifier.fillMaxWidth()
         ) {
             CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.displaySmall) {
-                AnimatedContent(targetState = hours) { Text(it, color = Color.Black) }
-                Text(":", color = Color.Black)
-                AnimatedContent(targetState = minutes) { Text(it, color = Color.Black) }
-                Text(":", color = Color.Black)
-                AnimatedContent(targetState = seconds) { Text(it, color = Color.Black) }
+                AnimatedContent(targetState = hours) {
+                    Text(it, color = MaterialTheme.colorScheme.onBackground)
+                }
+                Text(":", color = MaterialTheme.colorScheme.onBackground)
+                AnimatedContent(targetState = minutes) {
+                    Text(it, color = MaterialTheme.colorScheme.onBackground)
+                }
+                Text(":", color = MaterialTheme.colorScheme.onBackground)
+                AnimatedContent(targetState = seconds) {
+                    Text(it, color = MaterialTheme.colorScheme.onBackground)
+                }
             }
         }
 
@@ -129,10 +121,10 @@ private fun StopwatchUI(
                     IconButton(
                         onClick = onPause,
                         modifier = Modifier
-                            .background(Color(0xFF2196F3), RoundedCornerShape(50))
+                            .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(50))
                             .padding(12.dp)
                     ) {
-                        Icon(Icons.Filled.Pause, contentDescription = "Pause")
+                        Icon(Icons.Filled.Pause, contentDescription = "Pause", tint = MaterialTheme.colorScheme.onPrimary)
                     }
                 } else {
                     IconButton(
@@ -141,10 +133,10 @@ private fun StopwatchUI(
                             hasStarted = true
                         },
                         modifier = Modifier
-                            .background(Color(0xFF7A49D5), RoundedCornerShape(50))
+                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50))
                             .padding(12.dp)
                     ) {
-                        Icon(Icons.Filled.PlayArrow, contentDescription = "Play")
+                        Icon(Icons.Filled.PlayArrow, contentDescription = "Play", tint = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
             }
@@ -156,10 +148,10 @@ private fun StopwatchUI(
                         hasStarted = false
                     },
                     modifier = Modifier
-                        .background(Color(0xFF7A49D5), RoundedCornerShape(50))
-                        .padding(top=12.dp)
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50))
+                        .padding(top = 12.dp)
                 ) {
-                    Icon(Icons.Filled.Stop, contentDescription = "Stop")
+                    Icon(Icons.Filled.Stop, contentDescription = "Stop", tint = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -168,14 +160,15 @@ private fun StopwatchUI(
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    StopwatchUI(
-        isPlaying = false,
-        seconds = "00",
-        minutes = "00",
-        hours = "00"
-    )
+    HabitComposeTheme {
+        StopwatchUI(
+            isPlaying = false,
+            seconds = "00",
+            minutes = "00",
+            hours = "00"
+        )
+    }
 }

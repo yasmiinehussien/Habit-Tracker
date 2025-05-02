@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">تطبيق العادات</string>
+    <string name="default_web_client_id">372705012464-ssih1rrn3dko9v1eshlbd55vq9og2tu9.apps.googleusercontent.com</string>
+    <string name="title_activity_picker_time">اختيار الوقت</string>
+
+    <string name="language_english">الإنجليزية</string>
+    <string name="language_arabic">العربية</string>
+
+    <!-- res/values-ar/strings.xml (Arabic) -->
+    <resources>
+        <string name="username">اسم المستخدم</string>
+        <string name="edit_photo">تعديل الصورة</string>
+        <string name="notification">الإشعارات</string>
+        <string name="vacation_mode">وضع العطلة</string>
+        <string name="dark_mode">الوضع المظلم</string>
+        <string name="logout">تسجيل الخروج</string>
+    </resources>
+
+</resources>

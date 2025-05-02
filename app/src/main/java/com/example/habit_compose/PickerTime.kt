@@ -1,6 +1,6 @@
 
 
-package com.example.habit_compose
+/*package com.example.habit_compose
 
 
 import androidx.compose.foundation.BorderStroke
@@ -101,4 +101,97 @@ fun PickerTimePreview() {
 
 
 
+}*/
+
+package com.example.habit_compose
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.anhaki.picktime.PickHourMinuteSecond
+import com.anhaki.picktime.utils.PickTimeFocusIndicator
+import com.anhaki.picktime.utils.PickTimeTextStyle
+
+@Composable
+fun PickerTime(modifier: Modifier = Modifier, onTimeChanged: (Int, Int, Int) -> Unit) {
+    var hour by remember { mutableIntStateOf(0) }
+    var minute by remember { mutableIntStateOf(0) }
+    var second by remember { mutableIntStateOf(0) }
+
+    Column(
+        modifier
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(28.dp))
+
+        PickHourMinuteSecond(
+            initialHour = hour,
+            onHourChange = { hour = it },
+            initialMinute = minute,
+            onMinuteChange = { minute = it },
+            initialSecond = second,
+            onSecondChange = { second = it },
+            containerColor = MaterialTheme.colorScheme.background, // Using theme's background color
+            horizontalSpace = 28.dp,
+            selectedTextStyle = PickTimeTextStyle(
+                color = Color.Black, // Set the focused text to black
+                fontSize = 29.sp,
+                fontFamily = FontFamily.Default,
+                fontWeight = FontWeight.Normal,
+            ),
+            unselectedTextStyle = PickTimeTextStyle(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), // Using theme's onSurface color for unselected text
+                fontSize = 29.sp,
+                fontFamily = FontFamily.Default,
+                fontWeight = FontWeight.Normal,
+            ),
+            focusIndicator = PickTimeFocusIndicator(
+                enabled = true,
+                widthFull = false,
+                shape = RoundedCornerShape(100.dp),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary), // Using theme's primary color for the focus indicator
+            ),
+        )
+
+
+        Text(
+            text = "Hour  :  Minute  :  Second",
+            modifier
+                .padding(top = 14.dp),
+            style = MaterialTheme.typography.bodyLarge,
+            fontSize = 23.sp
+        )
+    }
+
+    onTimeChanged(hour, minute, second)
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun PickerTimePreview() {
+    // You can test this by wrapping it in your main theme
 }

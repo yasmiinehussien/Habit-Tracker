@@ -21,11 +21,29 @@ import androidx.compose.ui.unit.dp
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import kotlinx.coroutines.delay
 
+
+import androidx.compose.animation.core.*
+
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.graphicsLayer
+
+
+
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.tween
+
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.delay
+
 class SplashScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            HabitTrackerTheme  {
+            HabitTrackerTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     SplashScreen()
                 }
@@ -38,9 +56,28 @@ class SplashScreenActivity : ComponentActivity() {
 fun SplashScreen() {
     val context = LocalContext.current
 
+    // Pulse animation
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 700, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+
+        ),
+        label = "scaleAnim"
+    )
+
     LaunchedEffect(Unit) {
         delay(2500)
-        context.startActivity(Intent(context, WelcomeScreenActivity::class.java))
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val nextIntent = if (currentUser == null) {
+            Intent(context, WelcomeScreenActivity::class.java)
+        } else {
+            Intent(context, MainActivity::class.java)
+        }
+        context.startActivity(nextIntent)
         (context as? ComponentActivity)?.finish()
     }
 
@@ -52,9 +89,11 @@ fun SplashScreen() {
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.womanyoga), // replace with your logo
+            painter = painterResource(id = R.drawable.womanyoga2),
             contentDescription = "Splash Logo",
-            modifier = Modifier.size(200.dp)
+            modifier = Modifier
+                .size(200.dp)
+                .graphicsLayer(scaleX = scale, scaleY = scale)
         )
     }
 }

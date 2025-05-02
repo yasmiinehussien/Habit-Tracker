@@ -3,4 +3,20 @@
     <string name="default_web_client_id">372705012464-ssih1rrn3dko9v1eshlbd55vq9og2tu9.apps.googleusercontent.com</string>
     <string name="title_activity_picker_time">PickerTime</string>
 
-</resources>
+    <string name="language_english">English</string>
+    <string name="language_arabic">Arabic</string>
+    <!-- res/values/strings.xml (English) -->
+
+        <string name="username">Username</string>
+        <string name="edit_photo">Edit Photo</string>
+        <string name="notification">Notification</string>
+
+    <string name="language">Language</string>
+
+    <string name="vacation_mode_label">Vacation Mode</string>
+
+    <string name="dark_mode">Dark Mode</string>
+        <string name="logout">Logout</string>
+    </resources>
+
+

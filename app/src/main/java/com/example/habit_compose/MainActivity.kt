@@ -1,10 +1,14 @@
 package com.example.habit_compose
 
+import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -65,40 +69,64 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
+import com.example.habit_compose.ui.theme.ThemeViewModel
+import com.example.habit_compose.ui.theme.updateLocale
+
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.util.Locale
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class MainActivity : ComponentActivity() {
+    private val themeViewModel: ThemeViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
-            HabitTrackerTheme  {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+
+            HabitTrackerTheme(darkTheme = isDarkTheme) {
                 val navController = rememberNavController()
+                updateLocale(this, themeViewModel.selectedLanguage.value)
 
-                // HabitCategoryScreen(navController = navController)
+                // You can choose one of these:
+                // ProfileScreen(themeViewModel)
                 NavScreen()
-
             }
         }
-
     }
 }
 
 
-
 @Composable
-fun HabitListFromDb(habits: List<Habit>,navController: NavController) {
+fun HabitListFromDb(habits: List<Habit>, navController: NavController) {
     val categoryMap = habitCategories.associateBy { it.title }
     Box(
         modifier = Modifier
             .padding(16.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
     ) {
         if (habits.isEmpty()) {
@@ -107,7 +135,7 @@ fun HabitListFromDb(habits: List<Habit>,navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxSize()
             ) {
-                Text("No habits yet", color = Color.Gray)
+                Text("No habits yet", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
             }
         } else {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -127,17 +155,19 @@ fun HabitListFromDb(habits: List<Habit>,navController: NavController) {
         }
     }
 }
-fun getUsername(): String {
-    val user = FirebaseAuth.getInstance().currentUser
-    return user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest"
-}
 
+fun getNameFromEmail(): String {
+    val user = FirebaseAuth.getInstance().currentUser
+    val email = user?.email ?: ""
+    return email.substringBefore("@")
+}
 
 
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
+    val colorScheme = MaterialTheme.colorScheme
 
     var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
     var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
@@ -176,8 +206,8 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-    val GreenPrimary = Color(0xFF7A49D5)
-    val LightGreenSurface = Color(0xFFE0F2E9)
+    val GreenPrimary = colorScheme.primary // Using theme's primary color
+    val LightGreenSurface = colorScheme.surface.copy(alpha = 0.3f) // Using theme's surface with slight alpha
 
     Column {
         HeadIcons()
@@ -236,7 +266,7 @@ fun HomeScreen(navController: NavController) {
                     ) {
                         Text(
                             text = title,
-                            color = if (selectedTab == index) Color.White else Color.Black,
+                            color = if (selectedTab == index) colorScheme.onPrimary else colorScheme.onBackground,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp
                         )
@@ -251,71 +281,64 @@ fun HomeScreen(navController: NavController) {
 }
 
 
-
-
 @Composable
 fun HeadIcons() {
-    val username = getUsername()
+    val name = getNameFromEmail()
+    val colorScheme = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(all = 28.dp)
             .padding(top = 10.dp)
     ) {
-
         Row(
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End,
+            modifier = Modifier.fillMaxWidth()
         ) {
             IconButton(onClick = {/*to notification screen */ }) {
-
                 Icon(
                     imageVector = Icons.TwoTone.Notifications,
                     contentDescription = "notification icon",
                     modifier = Modifier.size(28.dp),
-                    tint = Color.Gray,
+                    tint = colorScheme.onBackground.copy(alpha = 0.6f),
                 )
             }
-
-
         }
+        Spacer(modifier = Modifier.height(8.dp)) // Adding some space
         Text(
-
-            text = " $username ",
+            text = "Hello, $name",
             fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
             fontSize = 21.sp,
+            color = colorScheme.onBackground,
+            modifier = Modifier.fillMaxWidth()
         )
         Text(
             text = "Let's make habits together!",
-            color = Color.Gray,
+            color = colorScheme.onBackground.copy(alpha = 0.6f),
             modifier = Modifier
                 .padding(top = 10.dp)
         )
-
     }
 }
 
 @Composable
 fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit) {
+    val colorScheme = MaterialTheme.colorScheme
     Card(
         onClick = onClick,
         modifier = Modifier
             .padding(vertical = 3.dp, horizontal = 14.dp)
             .clip(RoundedCornerShape(22.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color.Black else Color(0xFFF6FEFF)
+            containerColor = if (isSelected) colorScheme.primary else colorScheme.surface
         ),
-
-        )
-    {
+    ) {
         Column(
             modifier = Modifier
                 .width(50.dp)
                 .height(68.dp)
                 .padding(4.dp)
-
         ) {
             Box(
                 modifier = Modifier
@@ -326,36 +349,29 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     )
                     .clip(CircleShape)
                     .align(Alignment.CenterHorizontally)
-
-                    .background(Color(0xFFFDFDFD))
+                    .background(colorScheme.surface)
             ) {
-
                 Text(
                     text = date,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(2.dp),
                     style = MaterialTheme.typography.bodyMedium,
-
-                    )
+                    color = colorScheme.onSurface
+                )
             }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 9.dp)
-
             ) {
                 Text(
                     text = day,
                     modifier = Modifier.align(Alignment.Center),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF55C9D7)
-
+                    color = colorScheme.secondary
                 )
-
-
             }
-
         }
     }
 }
@@ -364,8 +380,9 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
 @Preview(showBackground = true, showSystemUi = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun HomeScreenPreview() {
-
-    NavScreen()
+    HabitTrackerTheme {
+        NavScreen()
+    }
 }
 
 
@@ -373,6 +390,7 @@ fun HomeScreenPreview() {
 fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavController) {
     val animatedAlpha = remember { Animatable(0f) }
     val animatedOffset = remember { Animatable(30f) }
+    val colorScheme = MaterialTheme.colorScheme
 
     LaunchedEffect(Unit) {
         animatedAlpha.animateTo(
@@ -400,7 +418,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
             .height(260.dp)
             .padding(horizontal = 8.dp)
             .shadow(12.dp, RoundedCornerShape(26.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -410,7 +428,10 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                     .clip(RoundedCornerShape(26.dp))
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color(0xFFDFF5EC), Color.Transparent)
+                            colors = listOf(
+                                colorScheme.surface.copy(alpha = 0.7f), // Using surface with alpha
+                                Color.Transparent
+                            )
                         )
                     )
             )
@@ -455,7 +476,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp,
-                    color = Color(0xFF1B1B1F),
+                    color = colorScheme.onSurface,
                     maxLines = 1
                 )
 
@@ -463,7 +484,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
 
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = category?.tagColor?.copy(alpha = 0.15f) ?: Color.LightGray,
+                    color = category?.tagColor?.copy(alpha = 0.15f) ?: colorScheme.surfaceVariant,
                     shadowElevation = 0.dp,
                     modifier = Modifier
                         .height(34.dp) // ✅ Less height
@@ -475,7 +496,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                     ) {
                         Text(
                             text = category?.tag ?: "Habit",
-                            color = category?.tagColor ?: Color.Black,
+                            color = category?.tagColor ?: colorScheme.onSurfaceVariant,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1

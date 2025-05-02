@@ -62,7 +62,7 @@ fun ForgotPasswordScreen(context: Activity) {
 
         // Top image
         Image(
-            painter = painterResource(id = R.drawable.womanyoga),
+            painter = painterResource(id = R.drawable.womanyoga2),
             contentDescription = "Yoga Illustration",
             modifier = Modifier
                 .height(200.dp)

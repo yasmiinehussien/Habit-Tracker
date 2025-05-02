@@ -62,7 +62,7 @@ fun LoginScreen(activity: ComponentActivity) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.womanyoga), // Use same image as sign-up
+            painter = painterResource(id = R.drawable.womanyoga2), // Use same image as sign-up
             contentDescription = "Top Image",
             contentScale = ContentScale.Fit,
             modifier = Modifier

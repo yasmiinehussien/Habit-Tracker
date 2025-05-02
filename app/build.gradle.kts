@@ -10,6 +10,9 @@ plugins {
 android {
     namespace = "com.example.habit_compose"
     compileSdk = 35
+    // Required when setting minSdkVersion to 20 or lower
+
+
 
     defaultConfig {
         applicationId = "com.example.habit_compose"
@@ -33,7 +36,18 @@ android {
             )
         }
     }
+
     compileOptions {
+        /*sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11*/
+
+
+        // For AGP 4.1+
+        isCoreLibraryDesugaringEnabled = true
+        // For AGP 4.0
+        // coreLibraryDesugaringEnabled = true
+
+        // Sets Java compatibility to Java 8
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -74,6 +88,11 @@ dependencies {
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.ads.mobile.sdk)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -106,4 +125,13 @@ dependencies {
 
 
     implementation("com.github.anhaki:PickTime-Compose:1.1.2")
+    // For AGP 7.4+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
+
+    implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:0.15.1-alpha01")
+
+    implementation ("androidx.compose.ui:ui-android:1.8.0")
+    implementation ("androidx.compose.animation:animation:1.8.0")
+
 }
+

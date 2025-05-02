@@ -46,7 +46,7 @@ fun WelcomeScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.womanyoga),
+                    painter = painterResource(id = R.drawable.womanyoga2),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(200.dp)

@@ -23,13 +23,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.habit_compose.ui.theme.ThemeViewModel
 
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
 import kotlin.time.ExperimentalTime
-
 
 @Composable
 fun NavScreen(modifier: Modifier = Modifier) {
@@ -44,12 +44,13 @@ fun NavScreen(modifier: Modifier = Modifier) {
 
     val navController = rememberNavController()
 
-
     var selectedIndex by remember { mutableStateOf(0) }
-
 
     val configuration = LocalConfiguration.current
     val isTablet = configuration.screenWidthDp > 600
+
+    // Get the ThemeViewModel
+    val themeViewModel: ThemeViewModel = viewModel()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -70,10 +71,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
                         .padding(horizontal = 16.dp),
                     selectedIndex = selectedIndex,
                     cornerRadius = shapeCornerRadius(cornerRadius = 24.dp),
-                    ballAnimation = Parabolic(
-
-                        tween(durationMillis = 500)
-                    ),
+                    ballAnimation = Parabolic(tween(durationMillis = 500)),
                     indentAnimation = Height(tween(durationMillis = 300)),
                     barColor = MaterialTheme.colorScheme.surface,
                     ballColor = Color(0xFF7852CC)
@@ -118,10 +116,9 @@ fun NavScreen(modifier: Modifier = Modifier) {
                     when (selectedIndex) {
                         0 -> HomeScreen(navController)
                         1 -> TimerScreen()
-
                         2 -> HabitCategoryScreen(navController)
-                        3-> HabitTrackerStatsScreen()
-                        4 -> ProfileScreen()
+                        3 -> HabitTrackerStatsScreen()
+                        4 -> ProfileScreen(themeViewModel = themeViewModel) // Passing the themeViewModel
                         else -> PlaceholderScreen()
                     }
                 }
@@ -135,20 +132,10 @@ fun NavScreen(modifier: Modifier = Modifier) {
                     val habitId = backStackEntry.arguments?.getString("habitId")?.toIntOrNull() ?: 0
                     HabitDetailsScreen(habitId = habitId, navController = navController)
                 }
-
-
-
-
-
-
             }
-
         }
-
     }
-
 }
-
 
 @Composable
 fun PlaceholderScreen() {
@@ -156,7 +143,6 @@ fun PlaceholderScreen() {
         Text(text = "Screen coming soon...", color = Color.Gray)
     }
 }
-
 
 @Preview(showSystemUi = true)
 @Composable
