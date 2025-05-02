@@ -119,7 +119,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
                 composable("tabs") {
                     when (selectedIndex) {
                         0 -> HomeScreen(navController)
-                        1 -> StopwatchScreen(viewModel = viewModel())
+                        1 -> TimerScreen()
                         2 -> HabitCategoryScreen(navController)
                         3-> HabitTrackerStatsScreen()
                         4 -> ProfileScreen()
