@@ -1,5 +1,6 @@
 package com.example.habit_compose
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,7 +40,14 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavController) {
+    val today = LocalDate.now()
+    val selected = LocalDate.parse(selectedDate)
     val context = LocalContext.current
+    val isToday = selected == today
+
+    var showDialog by remember { mutableStateOf(false) }
+
+
     val db = remember { AppDatabase.getDatabase(context) }
     var habit by remember { mutableStateOf<Habit?>(null) }
     val scope = rememberCoroutineScope()
@@ -47,17 +56,21 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
     LaunchedEffect(true) {
         scope.launch(Dispatchers.IO) {
             val foundHabit = db.habitDao().getAllHabits().find { it.id == habitId }
+            val habitProgress = db.habitProgressDao().getProgressForDate(habitId, selectedDate) // تعديل هنا
+
             withContext(Dispatchers.Main) {
                 habit = foundHabit
-                completedCount = foundHabit?.completedCount ?: 0
+                completedCount = habitProgress?.completedCount ?: foundHabit?.completedCount ?: 0
             }
         }
     }
+
 
     habit?.let {
         val category = habitCategories.find { cat -> cat.title == it.categoryTag }
         val totalTimes = it.howOftenPerDay
         val progress = (completedCount.toFloat() / totalTimes).coerceIn(0f, 1f)
+
 
 
         Box(
@@ -95,6 +108,8 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -106,36 +121,52 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
                             modifier = Modifier.padding(bottom = 24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(Color(0xFFD8F0FF))
                                     .padding(16.dp)
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        Icons.Default.DateRange,
-                                        contentDescription = null,
-                                        tint = Color(0xFF6D6D6D)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Column {
-                                        Text(
-                                            "Date and Time",
-                                            color = Color.DarkGray,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Medium
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            Icons.Default.DateRange,
+                                            contentDescription = null,
+                                            tint = Color(0xFF6D6D6D)
                                         )
-                                        Text(
-                                            text = LocalDate.parse(selectedDate).format(
-                                                DateTimeFormatter.ofPattern("dd MMM yyyy")),
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 14.sp
-                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                "Date",
+                                                color = Color.DarkGray,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Text(
+                                                text = LocalDate.parse(selectedDate).format(
+                                                    DateTimeFormatter.ofPattern("dd MMM yyyy")
+                                                ),
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = 14.sp
+                                            )
+                                        }
+                                    }
 
+                                    IconButton(onClick = { showDialog = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Delete habit",
+                                            tint = Color.Gray
+                                        )
                                     }
                                 }
                             }
+
 
                             Column(
                                 modifier = Modifier
@@ -208,7 +239,7 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
                                             text = "progress task: ${(progress * 100).toInt()}%",
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Medium,
-                                            color = Color(0xFF5A5A5A)
+                                            color = Color(0xFF889389)
                                         )
                                     }
                                 }
@@ -217,36 +248,75 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
 
                                 Button(
                                     onClick = {
-                                        if (completedCount < totalTimes) {
+                                        if (!isToday) {
+                                            Toast.makeText(context, "You don't have access to modify this date's progress", Toast.LENGTH_LONG).show()
+                                        } else if (completedCount < totalTimes) {
                                             completedCount++
                                             scope.launch(Dispatchers.IO) {
-                                                db.habitDao().updateCompletedCount(habitId, completedCount)
+                                                val progress = HabitProgress(
+                                                    habitId = habitId,
+                                                    date = selectedDate,
+                                                    completedCount = completedCount
+                                                )
+                                                db.habitProgressDao().insertOrUpdateProgress(progress)
                                             }
                                         }
                                     },
-                                    enabled = completedCount < totalTimes,
+                                    enabled = true,
                                     shape = RoundedCornerShape(50),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFCCF2FF)
+                                        containerColor = when {
+                                            !isToday -> Color.LightGray
+                                            progress >= 1f -> Color(0xFFAAF0D1)
+                                            else -> Color(0xFFCCF2FF)
+                                        }
                                     ),
                                     modifier = Modifier
                                         .height(46.dp)
                                         .width(190.dp)
                                 ) {
                                     Text(
-                                    text = if (progress >= 1f) "Done" else "Complete Task",
-                                    fontSize = 15.sp,
-                                    color = Color.Black,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                        text = if (progress >= 1f) "Done" else "Complete Task",
+                                        fontSize = 15.sp,
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 }
                             }
                         }
                     }
 
+
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showDialog = false },
+                            title = {
+                                Text("Delete Habit")
+                            },
+                            text = {
+                                Text("Are you sure you want to delete this habit?")
+                            },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    showDialog = false
+                                    scope.launch(Dispatchers.IO) {
+                                        db.habitDao().deleteHabitCompletely(habitId)
+                                    }
+                                    Toast.makeText(context, "Habit deleted", Toast.LENGTH_SHORT).show()
+                                    navController.popBackStack()
+                                }) {
+                                    Text("Delete", color = Color.Red)
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDialog = false }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
+                    }
                     Spacer(modifier = Modifier.height(24.dp))
                 }
-            }
         }
     }
-
+}

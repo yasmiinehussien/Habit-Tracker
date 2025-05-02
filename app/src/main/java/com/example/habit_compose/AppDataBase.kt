@@ -6,9 +6,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Habit::class], version = 3)
+@Database(entities = [Habit::class, HabitProgress::class], version = 4)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun habitDao(): HabitDao
+    abstract fun habitProgressDao(): HabitProgressDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

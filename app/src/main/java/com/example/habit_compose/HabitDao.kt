@@ -34,5 +34,17 @@ interface HabitDao {
     @Query("UPDATE habits SET completedCount = :count WHERE id = :habitId")
     suspend fun updateCompletedCount(habitId: Int, count: Int)
 
+    @Query("DELETE FROM habits WHERE id = :habitId")
+    suspend fun deleteHabitById(habitId: Int)
+
+    @Query("DELETE FROM habit_progress WHERE habitId = :habitId")
+    suspend fun deleteHabitProgressByHabitId(habitId: Int)
+
+    @Transaction
+    suspend fun deleteHabitCompletely(habitId: Int) {
+        deleteHabitProgressByHabitId(habitId)
+        deleteHabitById(habitId)
+    }
+
 
 }
