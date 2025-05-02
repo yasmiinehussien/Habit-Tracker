@@ -75,87 +75,99 @@ import java.time.format.DateTimeFormatter
 
 
 class MainActivity : ComponentActivity() {
-                    override fun onCreate(savedInstanceState: Bundle?) {
-                        super.onCreate(savedInstanceState)
-                        enableEdgeToEdge()
-                        setContent {
-                            HabitTrackerTheme  {
-                                val navController = rememberNavController()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            HabitTrackerTheme  {
+                val navController = rememberNavController()
 
-                                // HabitCategoryScreen(navController = navController)
+                // HabitCategoryScreen(navController = navController)
 
-                                NavScreen()
+                NavScreen()
 
-                            }
-                        }
+            }
+        }
 
+    }
+}
+
+fun mapDayOfWeekToIndex(day: java.time.DayOfWeek): Int {
+    return when (day) {
+        java.time.DayOfWeek.SUNDAY -> 0
+        java.time.DayOfWeek.MONDAY -> 1
+        java.time.DayOfWeek.TUESDAY -> 2
+        java.time.DayOfWeek.WEDNESDAY -> 3
+        java.time.DayOfWeek.THURSDAY -> 4
+        java.time.DayOfWeek.FRIDAY -> 5
+        java.time.DayOfWeek.SATURDAY -> 6
+    }
+}
+
+
+
+@Composable
+fun HabitListFromDb(habits: List<Habit>,navController: NavController,selectedDate: LocalDate) {
+    val categoryMap = habitCategories.associateBy { it.title }
+
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color.White)
+            .fillMaxSize()
+    ) {
+        if (habits.isEmpty()) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text("No habits yet", color = Color.Gray)
+            }
+        } else {
+            Column(modifier = Modifier.padding(16.dp)) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(20.dp)
+                ) {
+                    items(habits) { habit ->
+                        val category = categoryMap[habit.categoryTag]
+                        // or habit.categoryTag
+                        HabitCardFromDb(habit, category, navController, selectedDate)
                     }
                 }
+            }
+        }
+    }
+}
+fun getUsername(): String {
+    val user = FirebaseAuth.getInstance().currentUser
+    return user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest"
+}
 
 
 
-                @Composable
-                fun HabitListFromDb(habits: List<Habit>,navController: NavController,selectedDate: LocalDate) {
-                    val categoryMap = habitCategories.associateBy { it.title }
+@Composable
+fun HomeScreen(navController: NavController) {
+    val context = LocalContext.current
+    val db = remember { AppDatabase.getDatabase(context) }
 
-                    Box(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White)
-                            .fillMaxSize()
-                    ) {
-                        if (habits.isEmpty()) {
-                            Column(
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Text("No habits yet", color = Color.Gray)
-                            }
-                        } else {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                LazyVerticalGrid(
-                                    columns = GridCells.Fixed(2),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                    contentPadding = PaddingValues(20.dp)
-                                ) {
-                                    items(habits) { habit ->
-                                        val category = categoryMap[habit.categoryTag]
-                                        // or habit.categoryTag
-                                        HabitCardFromDb(habit, category, navController, selectedDate)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                fun getUsername(): String {
-                    val user = FirebaseAuth.getInstance().currentUser
-                    return user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest"
-                }
+    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
+    var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
+
+    val scope = rememberCoroutineScope()
+
+    val calenderData = remember { CalenderData() }
+    val today = calenderData.today
+    val weekDates = calenderData.getWeekDates()
+    val selectedDate = rememberSaveable { mutableStateOf(today) }
 
 
 
-                @Composable
-                fun HomeScreen(navController: NavController) {
-                    val context = LocalContext.current
-                    val db = remember { AppDatabase.getDatabase(context) }
-
-                    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
-                    var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
-
-                    val scope = rememberCoroutineScope()
-
-                    val calenderData = remember { CalenderData() }
-                    val today = calenderData.today
-                    val weekDates = calenderData.getWeekDates()
-                    val selectedDate = rememberSaveable { mutableStateOf(today) }
-
-
-
-                    //    fun loadHabits() {
+    //    fun loadHabits() {
 //        scope.launch(Dispatchers.IO) {
 //            val habits = db.habitDao().getAllRegularHabits()
 //            withContext(Dispatchers.Main) {
@@ -163,142 +175,193 @@ class MainActivity : ComponentActivity() {
 //            }
 //        }
 //    }
-                    fun loadHabits(dateSelected: LocalDate) {
+    fun loadHabits(dateSelected: LocalDate) {
+        scope.launch(Dispatchers.IO) {
+            val habits = db.habitDao().getAllRegularHabits()
+            val selectedDayOfWeek = mapDayOfWeekToIndex(dateSelected.dayOfWeek).toString()
+
+            val filteredHabits = habits.filter { habit ->
+                val endsAfterOrEqual = habit.endDate.isNullOrEmpty() ||
+                        LocalDate.parse(habit.endDate).isAfter(dateSelected) ||
+                        LocalDate.parse(habit.endDate).isEqual(dateSelected)
+
+                val startsBeforeOrEqual = LocalDate.parse(habit.createdDate).isBefore(dateSelected) ||
+                        LocalDate.parse(habit.createdDate).isEqual(dateSelected)
+
+                if (habit.repeatFrequency == "Daily") {
+                    endsAfterOrEqual && startsBeforeOrEqual
+                } else if (habit.repeatFrequency == "Weekly") {
+                    habit.daysSelected.split(",").contains(selectedDayOfWeek) &&
+                            endsAfterOrEqual && startsBeforeOrEqual
+                } else {
+                    false
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                savedHabits = filteredHabits
+            }
+        }
+    }
+
+
+
+    fun loadTasks(dateSelected: LocalDate) {
+        scope.launch(Dispatchers.IO) {
+            val tasks = db.habitDao().getAllOneTimeTasks()
+
+            val filteredTasks = tasks.filter { task ->
+                task.taskDate == dateSelected.toString()
+            }
+
+            withContext(Dispatchers.Main) {
+                savedHabits = filteredTasks
+            }
+        }
+    }
+
+
+
+
+
+
+    LaunchedEffect(selectedTab, selectedDate.value, savedHabits) {
+        if (selectedTab == 0) {
+            loadHabits(selectedDate.value)
+        } else {
+            loadTasks(selectedDate.value) // pass selected date here
+        }
+    }
+
+    val GreenPrimary = Color(0xFF7A49D5)
+    val LightGreenSurface = Color(0xFFE0F2E9)
+
+    Column {
+        HeadIcons()
+
+        LazyRow(
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
+            items(weekDates) { date ->
+                DateBar(
+                    day = date.day,
+                    date = date.date.dayOfMonth.toString(),
+                    isSelected = date.date == selectedDate.value,
+                    onClick = {
+                        selectedDate.value = date.date
+
                         scope.launch(Dispatchers.IO) {
-                            val habits = db.habitDao().getAllRegularHabits()
+                            val allHabits = db.habitDao().getAllHabits()
 
-                            val filteredHabits = habits.filter { habit ->
-                                habit.endDate.isNullOrEmpty() ||
-                                        LocalDate.parse(habit.endDate).isAfter(dateSelected) ||
-                                        LocalDate.parse(habit.endDate).isEqual(dateSelected)
-                            }
+                            val selectedDayOfWeek = mapDayOfWeekToIndex(date.date.dayOfWeek).toString()
+                            val selectedDateStr = date.date.toString()
 
-                            withContext(Dispatchers.Main) {
-                                savedHabits = filteredHabits
-                            }
-                        }
-                    }
+                            val filtered = allHabits.filter { habit ->
 
 
+                                if (selectedTab == 0 && habit.isRegularHabit) {
+                                    // Habits tab: check repeat type
+                                    //val selectedDateStr = date.date.toString()
 
-                    fun loadTasks() {
-                        scope.launch(Dispatchers.IO) {
-                            val tasks = db.habitDao().getAllOneTimeTasks()
-                            withContext(Dispatchers.Main) {
-                                savedHabits = tasks
-                            }
-                        }
-                    }
+                                    val endsAfterOrEqual = habit.endDate.isNullOrEmpty() ||
+                                            LocalDate.parse(habit.endDate).isAfter(date.date) ||
+                                            LocalDate.parse(habit.endDate).isEqual(date.date)
+
+                                    val startsBeforeOrEqual =
+                                        LocalDate.parse(habit.createdDate).isBefore(date.date) ||
+                                                LocalDate.parse(habit.createdDate).isEqual(date.date)
 
 
 
-
-
-
-// Load based on tab
-                    LaunchedEffect(selectedTab) {
-                        if (selectedTab == 0) {
-                            loadHabits(selectedDate.value)
-                        } else {
-
-
-                            loadTasks() // تمرير التاريخ الحالي إلى loadTasks
-                        }
-
-                    }
-
-                    val GreenPrimary = Color(0xFF7A49D5)
-                    val LightGreenSurface = Color(0xFFE0F2E9)
-
-                    Column {
-                        HeadIcons()
-
-                        LazyRow(
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        ) {
-                            items(weekDates) { date ->
-                                DateBar(
-                                    day = date.day,
-                                    date = date.date.dayOfMonth.toString(),
-                                    isSelected = date.date == selectedDate.value,
-                                    onClick = {
-                                        selectedDate.value = date.date
-
-                                        if (selectedTab == 0) {
-                                            // Only reload habits when in habits tab
-                                            scope.launch(Dispatchers.IO) {
-                                                val dayOfWeekIndex = (date.date.dayOfWeek.value % 7).toString()
-                                                val habitsForDay = db.habitDao().getHabitsBySelectedDay(dayOfWeekIndex)
-                                                withContext(Dispatchers.Main) {
-                                                    savedHabits = habitsForDay
-                                                }
-                                            }
-                                        }
+                                    if (habit.repeatFrequency == "Daily") {
+                                        endsAfterOrEqual && startsBeforeOrEqual
+                                    } else if (habit.repeatFrequency == "Weekly") {
+                                        habit.daysSelected.split(",").contains(selectedDayOfWeek) &&
+                                                endsAfterOrEqual && startsBeforeOrEqual
+                                    } else {
+                                        false // avoid accidentally including incorrect frequency
                                     }
-                                )
-                            }
-                        }
 
-                        // 🟪 Tabs below the Calendar now
-                        Card(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = LightGreenSurface)
-                        ) {
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                listOf("Habits", "Tasks").forEachIndexed { index, title ->
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(if (selectedTab == index) GreenPrimary else Color.Transparent)
-                                            .clickable {
-                                                selectedTab = index
-                                            }
-                                            .padding(vertical = 12.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = title,
-                                            color = if (selectedTab == index) Color.White else Color.Black,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 16.sp
-                                        )
-                                    }
+
+                                } else if (selectedTab == 1 && !habit.isRegularHabit) {
+                                     habit.taskDate == selectedDateStr
+
+                                    // Tasks tab: show tasks only for exact taskDate
+                                } else {
+                                    false
                                 }
                             }
+
+                            withContext(Dispatchers.Main) {
+                                savedHabits = filtered
+                            }
                         }
+                    }
 
-                        // Habit/Task Cards
-                        //HabitListFromDb(habits = savedHabits, navController = navController)
-                        HabitListFromDb(
-                            habits = savedHabits,
-                            navController = navController,
-                            selectedDate = selectedDate.value
+                )
+            }
+        }
+
+        // 🟪 Tabs below the Calendar now
+        Card(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = LightGreenSurface)
+        ) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                listOf("Habits", "Tasks").forEachIndexed { index, title ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(if (selectedTab == index) GreenPrimary else Color.Transparent)
+                            .clickable {
+                                selectedTab = index
+                            }
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = title,
+                            color = if (selectedTab == index) Color.White else Color.Black,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
                         )
-
                     }
                 }
+            }
+        }
+
+        // Habit/Task Cards
+        //HabitListFromDb(habits = savedHabits, navController = navController)
+        HabitListFromDb(
+            habits = savedHabits,
+            navController = navController,
+            selectedDate = selectedDate.value
+        )
+
+    }
+}
 
 
 
 
-                @Composable
-                fun HeadIcons() {
-                    val username = getUsername()
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(all = 28.dp)
-                            .padding(top = 10.dp)
-                    ) {
+@Composable
+fun HeadIcons() {
+    val username = getUsername()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(all = 28.dp)
+            .padding(top = 10.dp)
+    ) {
 
 
         Text(
@@ -351,7 +414,7 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     ),
-                   // color = if (isSelected) Color.White else Color.Black
+                    // color = if (isSelected) Color.White else Color.Black
                 )
             }
 
@@ -401,7 +464,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
         shape = RoundedCornerShape(26.dp),
         modifier = Modifier
             .clickable {
-                navController.navigate("habit_details/${habit.id}")
+                navController.navigate("habit_details/${habit.id}/${selectedDate}")
 
 
             }

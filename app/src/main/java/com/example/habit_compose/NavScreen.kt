@@ -23,11 +23,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
+import java.time.LocalDate
 
 
 @Composable
@@ -129,10 +132,18 @@ fun NavScreen(modifier: Modifier = Modifier) {
                     HabitFormScreen(navController, categoryTag)
                 }
 
-                composable("habit_details/{habitId}") { backStackEntry ->
-                    val habitId = backStackEntry.arguments?.getString("habitId")?.toIntOrNull() ?: 0
-                    HabitDetailsScreen(habitId = habitId, navController = navController)
+                composable(
+                    "habit_details/{habitId}/{selectedDate}",
+                    arguments = listOf(
+                        navArgument("habitId") { type = NavType.IntType },
+                        navArgument("selectedDate") { type = NavType.StringType }
+                    )
+                ) {
+                    val habitId = it.arguments?.getInt("habitId") ?: 0
+                    val selectedDate = it.arguments?.getString("selectedDate") ?: LocalDate.now().toString()
+                    HabitDetailsScreen(habitId = habitId, selectedDate = selectedDate, navController = navController)
                 }
+
 
 
 

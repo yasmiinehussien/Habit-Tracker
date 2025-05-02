@@ -32,11 +32,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.material3.*
 import androidx.compose.ui.tooling.preview.Preview
-
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 @Composable
-fun HabitDetailsScreen(habitId: Int, navController: NavController) {
+fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
     var habit by remember { mutableStateOf<Habit?>(null) }
@@ -126,10 +127,12 @@ fun HabitDetailsScreen(habitId: Int, navController: NavController) {
                                             fontWeight = FontWeight.Medium
                                         )
                                         Text(
-                                            "30 jul,2025",
+                                            text = LocalDate.parse(selectedDate).format(
+                                                DateTimeFormatter.ofPattern("dd MMM yyyy")),
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = 14.sp
                                         )
+
                                     }
                                 }
                             }

@@ -1,3 +1,4 @@
+
 package com.example.habit_compose
 
 
@@ -7,14 +8,15 @@ import java.time.LocalDate
 class CalenderData {
     val today = LocalDate.now()
 
-    fun getWeekDates(selectedDate: LocalDate = today): List<DayInfo> {
-        val daysFromSaturday =
-            ((selectedDate.dayOfWeek.value % 7) + 1) % 7 // make week start from saturday=0
-        val startOfWeek = selectedDate.minusDays(daysFromSaturday.toLong())
+    fun getWeekDates(
+        selectedDate: LocalDate = today,
+        daysToShow: Int = 30 //
+    ): List<DayInfo> {
+        val daysFromSaturday = ((selectedDate.dayOfWeek.value % 7) + 1) % 7
+        val startOfCalendar = selectedDate.minusDays(daysFromSaturday.toLong())
 
-
-        return (0..6).map { it ->
-            val date = startOfWeek.plusDays(it.toLong())
+        return (0 until daysToShow).map { offset ->
+            val date = startOfCalendar.plusDays(offset.toLong())
             DayInfo(
                 date = date,
                 isSelected = date == selectedDate,
@@ -23,3 +25,4 @@ class CalenderData {
         }
     }
 }
+

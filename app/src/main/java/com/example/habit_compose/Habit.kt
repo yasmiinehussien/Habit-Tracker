@@ -3,6 +3,7 @@ package com.example.habit_compose
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.LocalDate
 
 @Entity(tableName = "habits")
 data class Habit(
@@ -18,5 +19,7 @@ data class Habit(
     val categoryTag: String,
     val reminderTime: String?,
     val taskDate: String?,
-    val completedCount: Int = 0
+    val completedCount: Int = 0,
+    val createdDate: String = LocalDate.now().toString()
+
 )

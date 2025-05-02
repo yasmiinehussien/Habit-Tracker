@@ -121,9 +121,19 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                                             categoryTag = categoryTag,
                                             howOftenPerDay = howOftenPerDay,
                                             reminderTime = reminderTime,
-                                            taskDate = if (!isRegularHabit && daysSelected.size == 1) daysSelected.first() else null
+                                            taskDate = if (!isRegularHabit && daysSelected.size == 1) {
+                                                val selectedDayIndex = daysSelected.first().toInt()
+                                                val today = LocalDate.now()
+                                                val todayIndex = today.dayOfWeek.value % 7
+                                                val daysUntil = (selectedDayIndex - todayIndex + 7) % 7
+                                                val realDate = today.plusDays(daysUntil.toLong())
+                                                realDate.toString()
+                                            } else null,
+                                            createdDate = LocalDate.now().toString() // ✅ Important fix
                                         )
                                     )
+
+
 
                                     withContext(Dispatchers.Main) {
                                         if (setReminder && reminderTime != null) {
