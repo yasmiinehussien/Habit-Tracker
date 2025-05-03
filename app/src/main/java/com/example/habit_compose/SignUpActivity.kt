@@ -100,7 +100,7 @@ fun SignUpScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.womanyoga),
+            painter = painterResource(id = R.drawable.womanyoga2),
             contentDescription = "Top Image",
             contentScale = ContentScale.Fit,
             modifier = Modifier

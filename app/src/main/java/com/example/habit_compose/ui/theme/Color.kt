@@ -11,8 +11,8 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 // Light Theme Colors
-val LightPrimary = Color(0xFF6C63FF)         // بنفسجي رئيسي
-val LightSecondary = Color(0xFF00C9A7)       // أخضر نعناعي (Accent)
+val LightPrimary = Color(0xFF7E68C4)         // بنفسجي رئيسي
+val LightSecondary = Color(0xFF625b71)       // أخضر نعناعي (Accent)
 val LightBackground = Color(0xFFF7F7F7)      // خلفية عامة
 val LightSurface = Color(0xFFFFFFFF)         // لون الكروت مثلا
 val LightOnPrimary = Color(0xFFFFFFFF)       // النص فوق اللون الأساسي
@@ -21,7 +21,7 @@ val LightOnSurface = Color(0xFF000000)        // نص فوق الكروت
 
 // Dark Theme Colors
 val DarkPrimary = Color(0xFFBB86FC)           // بنفسجي مضيء شوية
-val DarkSecondary = Color(0xFF03DAC5)         // أخضر مصفر شوية (Accent داكن)
+val DarkSecondary = Color(0xFF625b71)         // أخضر مصفر شوية (Accent داكن)
 val DarkBackground = Color(0xFF121212)        // خلفية دارك
 val DarkSurface = Color(0xFF1E1E1E)            // كروت دارك
 val DarkOnPrimary = Color(0xFF000000)          // نص على البرايمري
