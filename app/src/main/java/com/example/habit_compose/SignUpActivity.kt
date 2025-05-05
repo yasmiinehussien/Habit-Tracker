@@ -63,6 +63,7 @@ class SignUpActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
 
+
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -90,7 +91,7 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
+    var isLoading by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -133,11 +134,16 @@ fun SignUpScreen(
                 } else if (email.isBlank() || password.isBlank()) {
                     errorMessage = "Please fill all fields"
                 } else {
+                    isLoading = true
                     auth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
+                            isLoading = false
                             if (task.isSuccessful) {
                                 auth.currentUser?.sendEmailVerification()
                                 Toast.makeText(activity, "Verification email sent. Please check your inbox.", Toast.LENGTH_LONG).show()
+
+                                val intent = Intent(activity, LoginActivity::class.java)
+                                activity.startActivity(intent)
                                 activity.finish()
                             } else {
                                 errorMessage = "Error: ${task.exception?.message}"
@@ -150,6 +156,10 @@ fun SignUpScreen(
             shape = RoundedCornerShape(10.dp)
         ) {
             Text("Sign Up", color = Color.White)
+        }
+        if (isLoading) {
+            Spacer(modifier = Modifier.height(20.dp))
+            CircularProgressIndicator(color = Color(0xFF4A0AB2))
         }
 
         Spacer(modifier = Modifier.height(12.dp))

@@ -1,8 +1,9 @@
 package com.example.habit_compose
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Patterns
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,27 +12,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.habit_compose.ui.theme.CustomTextField
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
-
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
@@ -40,18 +35,20 @@ class LoginActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            HabitTrackerTheme {
+            HabitTrackerTheme  {
                 LoginScreen(activity = this)
             }
         }
     }
-
 }
 
 @Composable
 fun LoginScreen(activity: ComponentActivity) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val auth = FirebaseAuth.getInstance()
 
     Column(
         modifier = Modifier
@@ -62,7 +59,7 @@ fun LoginScreen(activity: ComponentActivity) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.womanyoga2), // Use same image as sign-up
+            painter = painterResource(id = R.drawable.womanyoga2),
             contentDescription = "Top Image",
             contentScale = ContentScale.Fit,
             modifier = Modifier
@@ -96,43 +93,38 @@ fun LoginScreen(activity: ComponentActivity) {
         Button(
             onClick = {
                 if (email.isNotBlank() && password.isNotBlank()) {
-                    FirebaseAuth.getInstance()
-                        .signInWithEmailAndPassword(email, password)
+                    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        Toast.makeText(activity, "Invalid email format.", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    isLoading = true
+                    auth.signInWithEmailAndPassword(email.trim(), password)
                         .addOnCompleteListener { task ->
+                            isLoading = false
                             if (task.isSuccessful) {
-                                Toast.makeText(activity, "Login successful!", Toast.LENGTH_LONG).show()
-
-                                // ✅ Move to MainActivity after login
-                                val intent = Intent(activity, MainActivity::class.java)
+                                Toast.makeText(activity, "Login successful!", Toast.LENGTH_SHORT).show()
+                                val intent = Intent(activity, MainActivity::class.java).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                }
                                 activity.startActivity(intent)
-                                activity.finish() // Optional: close the login screen
-
+                                activity.finish()
 
                             } else {
-                                val errorMessage = when (val exception = task.exception) {
-                                    is FirebaseAuthInvalidUserException -> {
-                                        "No account found for this email. Please sign up first."
-                                    }
-                                    is FirebaseAuthInvalidCredentialsException -> {
-                                        if (exception.message?.contains("password is invalid") == true ||
-                                            exception.message?.contains("The password is invalid") == true
-                                        ) {
-                                            "Wrong password. Please try again."
-                                        } else if (exception.message?.contains("email") == true) {
-                                            "Invalid email format. Please check and try again."
-                                        } else {
-                                            "Invalid credentials. Please double-check your info."
-                                        }
-                                    }
-                                    else -> {
-                                        "Login failed: ${task.exception?.message}"
-                                    }
+                                val exception = task.exception
+                                val message = when (exception) {
+                                    is FirebaseAuthInvalidUserException -> "No account found for this email. Please sign up first."
+                                    is FirebaseAuthInvalidCredentialsException -> "Wrong email or password. Please try again."
+                                    is FirebaseAuthException -> "Authentication error: ${exception.message}"
+                                    else -> "Login failed. Please try again."
                                 }
-                                Toast.makeText(activity, errorMessage, Toast.LENGTH_LONG).show()
+
+                                Log.d("FIREBASE_ERROR", "Exception Class: ${exception?.javaClass}")
+                                Log.d("FIREBASE_ERROR", "Exception Message: ${exception?.message}")
+                                Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
                             }
                         }
                 } else {
-                    Toast.makeText(activity, "Please enter all fields", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(activity, "Please enter both email and password.", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -142,7 +134,14 @@ fun LoginScreen(activity: ComponentActivity) {
             Text("Login", color = Color.White)
         }
 
-
+        if (isLoading) {
+            Spacer(modifier = Modifier.height(16.dp))
+            CircularProgressIndicator(
+                modifier = Modifier.size(40.dp),
+                color = Color(0xFF4A0AB2),
+                strokeWidth = 4.dp
+            )
+        }
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedButton(
@@ -196,6 +195,5 @@ fun LoginScreen(activity: ComponentActivity) {
             },
             textDecoration = TextDecoration.Underline
         )
-
     }
 }

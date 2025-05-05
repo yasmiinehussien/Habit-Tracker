@@ -65,6 +65,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.intl.Locale
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -118,14 +122,33 @@ fun HabitListFromDb(habits: List<Habit>,navController: NavController,selectedDat
             .fillMaxSize()
     ) {
         if (habits.isEmpty()) {
+            val composition by rememberLottieComposition(LottieCompositionSpec.Asset("habit_animation.json"))
+            val progress by animateLottieCompositionAsState(composition)
+
             Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize()
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("No habits yet", color = Color.Gray)
+                // Lottie Animation
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier.size(250.dp)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Let's add your first habit!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color =Color(0xFF7D54D2)
+                )
             }
-        } else {
+        }
+        else {
             Column(modifier = Modifier.padding(16.dp)) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),

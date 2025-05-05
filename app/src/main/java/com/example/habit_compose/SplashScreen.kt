@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.graphicsLayer
 
 
-
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -74,14 +73,19 @@ fun SplashScreen() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         val nextIntent = if (currentUser == null) {
             Intent(context, WelcomeScreenActivity::class.java)
-        } else {
-            Intent(context, MainActivity::class.java)
-        }
+        } else  //(currentUser.isEmailVerified)
+             {
+            Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+        } //else {
+            //Intent(context, LoginActivity::class.java)
+       // }
         context.startActivity(nextIntent)
         (context as? ComponentActivity)?.finish()
     }
 
-    // UI of the splash screen
+        // UI of the splash screen
     Box(
         modifier = Modifier
             .fillMaxSize()
