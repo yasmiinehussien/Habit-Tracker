@@ -4,13 +4,11 @@ import android.graphics.Typeface
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -43,52 +40,55 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.runtime.*
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.intl.Locale
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 
+@AndroidEntryPoint  // This is required for Hilt to work!
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            HabitTrackerTheme  {
+            HabitTrackerTheme{
                 val navController = rememberNavController()
-
-                // HabitCategoryScreen(navController = navController)
-
-                NavScreen()
-
+            }
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                NavScreen()  // Your navigation component
             }
         }
-
     }
 }
 
@@ -165,16 +165,6 @@ fun HomeScreen(navController: NavController) {
     val weekDates = calenderData.getWeekDates()
     val selectedDate = rememberSaveable { mutableStateOf(today) }
 
-
-
-    //    fun loadHabits() {
-//        scope.launch(Dispatchers.IO) {
-//            val habits = db.habitDao().getAllRegularHabits()
-//            withContext(Dispatchers.Main) {
-//                savedHabits = habits
-//            }
-//        }
-//    }
     fun loadHabits(dateSelected: LocalDate) {
         scope.launch(Dispatchers.IO) {
             val habits = db.habitDao().getAllRegularHabits()
@@ -204,8 +194,6 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-
-
     fun loadTasks(dateSelected: LocalDate) {
         scope.launch(Dispatchers.IO) {
             val tasks = db.habitDao().getAllOneTimeTasks()
@@ -220,11 +208,6 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-
-
-
-
-
     LaunchedEffect(selectedTab, selectedDate.value, savedHabits) {
         if (selectedTab == 0) {
             loadHabits(selectedDate.value)
@@ -237,7 +220,7 @@ fun HomeScreen(navController: NavController) {
     val LightGreenSurface = Color(0xFFE0F2E9)
 
     Column {
-        HeadIcons()
+        HeadIcons(navController)
 
         LazyRow(
             modifier = Modifier.padding(horizontal = 8.dp)
@@ -257,12 +240,8 @@ fun HomeScreen(navController: NavController) {
                             val selectedDateStr = date.date.toString()
 
                             val filtered = allHabits.filter { habit ->
-
-
                                 if (selectedTab == 0 && habit.isRegularHabit) {
                                     // Habits tab: check repeat type
-                                    //val selectedDateStr = date.date.toString()
-
                                     val endsAfterOrEqual = habit.endDate.isNullOrEmpty() ||
                                             LocalDate.parse(habit.endDate).isAfter(date.date) ||
                                             LocalDate.parse(habit.endDate).isEqual(date.date)
@@ -270,8 +249,6 @@ fun HomeScreen(navController: NavController) {
                                     val startsBeforeOrEqual =
                                         LocalDate.parse(habit.createdDate).isBefore(date.date) ||
                                                 LocalDate.parse(habit.createdDate).isEqual(date.date)
-
-
 
                                     if (habit.repeatFrequency == "Daily") {
                                         endsAfterOrEqual && startsBeforeOrEqual
@@ -281,11 +258,8 @@ fun HomeScreen(navController: NavController) {
                                     } else {
                                         false // avoid accidentally including incorrect frequency
                                     }
-
-
                                 } else if (selectedTab == 1 && !habit.isRegularHabit) {
-                                     habit.taskDate == selectedDateStr
-
+                                    habit.taskDate == selectedDateStr
                                     // Tasks tab: show tasks only for exact taskDate
                                 } else {
                                     false
@@ -297,7 +271,6 @@ fun HomeScreen(navController: NavController) {
                             }
                         }
                     }
-
                 )
             }
         }
@@ -340,43 +313,55 @@ fun HomeScreen(navController: NavController) {
         }
 
         // Habit/Task Cards
-        //HabitListFromDb(habits = savedHabits, navController = navController)
         HabitListFromDb(
             habits = savedHabits,
             navController = navController,
             selectedDate = selectedDate.value
         )
-
     }
 }
 
 
-
-
 @Composable
-fun HeadIcons() {
+fun HeadIcons(navController: NavController) {
     val username = getUsername()
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(all = 28.dp)
-            .padding(top = 10.dp)
+            .padding(horizontal = 28.dp, vertical = 28.dp)
+            .padding(top = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        Column {
+            Text(
+                text = " $username ",
+                fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
+                fontSize = 21.sp,
+            )
+            Text(
+                text = "Let's make habits together!",
+                color = Color.Gray,
+                modifier = Modifier
+                    .padding(top = 10.dp)
+            )
+        }
 
-
-        Text(
-
-            text = " $username ",
-            fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
-            fontSize = 21.sp,
-        )
-        Text(
-            text = "Let's make habits together!",
-            color = Color.Gray,
+        IconButton(
+            onClick = { navController.navigate("quotes") },
             modifier = Modifier
-                .padding(top = 10.dp)
-        )
-
+                .size(48.dp)
+                .shadow(6.dp, CircleShape)
+                .clip(CircleShape)
+                .background(Color(0xFF7A49D5).copy(alpha = 0.1f))
+        ) {
+            Icon(
+                imageVector = Icons.TwoTone.Notifications,
+                contentDescription = "Daily Inspiration",
+                tint = Color(0xFF7A49D5),
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -439,7 +424,6 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
 @Preview(showBackground = true, showSystemUi = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun HomeScreenPreview() {
-
     NavScreen()
 }
 
@@ -465,8 +449,6 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
         modifier = Modifier
             .clickable {
                 navController.navigate("habit_details/${habit.id}/${selectedDate}")
-
-
             }
             .graphicsLayer {
                 alpha = animatedAlpha.value
