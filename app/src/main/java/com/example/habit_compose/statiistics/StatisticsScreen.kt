@@ -1,5 +1,5 @@
-package com.example.habit_compose
-import androidx.compose.animation.core.animateFloatAsState
+package com.example.habit_compose.statiistics
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -10,10 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.Rocket
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material3.*
@@ -26,13 +24,10 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 // Define colors
 val PrimaryColor = Color(0xFF9472EA)
@@ -42,7 +37,8 @@ val TextPrimaryColor = Color(0xFF333333)
 val TextSecondaryColor = Color(0xFF666666)
 
 @Composable
-fun HabitTrackerStatsScreen() {
+fun HabitTrackerStatsScreen(onBack:()->Unit={}) {
+    BackHandler { onBack() }
     val selectedTabIndex = remember { mutableStateOf(0) }
 
     Scaffold(

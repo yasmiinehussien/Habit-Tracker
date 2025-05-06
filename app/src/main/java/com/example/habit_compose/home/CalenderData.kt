@@ -1,7 +1,5 @@
 
-package com.example.habit_compose
-
-
+package com.example.habit_compose.home
 import java.time.LocalDate
 
 

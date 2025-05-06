@@ -1,4 +1,4 @@
-package com.example.habit_compose
+package com.example.habit_compose.auth
 
 import android.content.Intent
 import android.os.Bundle
@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.habit_compose.R
+import com.example.habit_compose.home.MainActivity
 import com.example.habit_compose.ui.theme.CustomTextField
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import com.google.firebase.auth.FirebaseAuth

@@ -1,9 +1,10 @@
 
-package com.example.habit_compose
+package com.example.habit_compose.profile
 
 
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -27,12 +28,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
+import com.example.habit_compose.R
+import com.example.habit_compose.home.getUsername
+import com.example.habit_compose.welcome.WelcomeScreenActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(onBack:()->Unit={}) {
+    BackHandler { onBack() }
     val context = LocalContext.current
 
     var imageUri by rememberSaveable { mutableStateOf("") }

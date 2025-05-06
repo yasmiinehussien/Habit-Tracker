@@ -1,5 +1,6 @@
-package com.example.habit_compose
+package com.example.habit_compose.timer
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -33,8 +35,9 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun TimerScreen() {
-    var stopwatchViewModel:MainViewModel= viewModel()
+fun TimerScreen(onBack:()->Unit={}) {
+    BackHandler { onBack() }
+    var stopwatchViewModel: MainViewModel = viewModel()
     var selectedTab by rememberSaveable {  mutableStateOf(0) }//stopwatch->0     countdownTimer->1
     Column(
         verticalArrangement = Arrangement.Center,
@@ -51,7 +54,7 @@ fun TimerScreen() {
             .fillMaxWidth()
         ){
             when(selectedTab){
-                0->StopwatchScreen(stopwatchViewModel)
+                0-> StopwatchScreen(stopwatchViewModel)
                 1-> CountdownScreen()
             }
         }
@@ -92,9 +95,12 @@ fun TimerScreen() {
 fun CountdownScreen(){var selectedHour by remember { mutableStateOf(0) }
     var selectedMinute by remember { mutableStateOf(0) }
     var selectedSecond by remember { mutableStateOf(0) }
-    var timerViewModel:MainViewModel= viewModel()
+    var timerViewModel: MainViewModel = viewModel()
     var isTimerStarted by remember { mutableStateOf(false) }
 
+    LaunchedEffect(timerViewModel) {
+        timerViewModel.onTimerFinished={isTimerStarted=false}
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,

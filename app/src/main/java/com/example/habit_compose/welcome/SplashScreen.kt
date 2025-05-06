@@ -1,4 +1,4 @@
-package com.example.habit_compose
+package com.example.habit_compose.welcome
 
 
 import android.content.Intent
@@ -22,8 +22,6 @@ import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import kotlinx.coroutines.delay
 
 
-import androidx.compose.animation.core.*
-
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.graphicsLayer
 
@@ -34,9 +32,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.tween
+import com.example.habit_compose.R
+import com.example.habit_compose.home.MainActivity
 
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.delay
 
 class SplashScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,4 +1,4 @@
-package com.example.habit_compose
+package com.example.habit_compose.habits
 
 
 import androidx.room.Entity

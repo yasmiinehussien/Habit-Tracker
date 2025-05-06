@@ -1,4 +1,4 @@
-package com.example.habit_compose
+package com.example.habit_compose.notification
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -13,6 +13,7 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.habit_compose.R
 import java.util.Calendar
 
 class ReminderReceiver : BroadcastReceiver() {

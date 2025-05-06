@@ -1,4 +1,4 @@
-package com.example.habit_compose
+package com.example.habit_compose.home
 
 import android.graphics.Typeface
 import android.os.Bundle
@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -33,12 +32,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -57,25 +52,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.intl.Locale
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.habit_compose.habits.AppDatabase
+import com.example.habit_compose.habits.Habit
+import com.example.habit_compose.habits.HabitCategory
+import com.example.habit_compose.R
+import com.example.habit_compose.habits.habitCategories
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 
 class MainActivity : ComponentActivity() {
@@ -84,9 +81,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HabitTrackerTheme  {
-                val navController = rememberNavController()
-
-                // HabitCategoryScreen(navController = navController)
 
                 NavScreen()
 
@@ -111,7 +105,7 @@ fun mapDayOfWeekToIndex(day: java.time.DayOfWeek): Int {
 
 
 @Composable
-fun HabitListFromDb(habits: List<Habit>,navController: NavController,selectedDate: LocalDate) {
+fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedDate: LocalDate) {
     val categoryMap = habitCategories.associateBy { it.title }
 
     Box(
@@ -189,15 +183,6 @@ fun HomeScreen(navController: NavController) {
     val selectedDate = rememberSaveable { mutableStateOf(today) }
 
 
-
-    //    fun loadHabits() {
-//        scope.launch(Dispatchers.IO) {
-//            val habits = db.habitDao().getAllRegularHabits()
-//            withContext(Dispatchers.Main) {
-//                savedHabits = habits
-//            }
-//        }
-//    }
     fun loadHabits(dateSelected: LocalDate) {
         scope.launch(Dispatchers.IO) {
             val habits = db.habitDao().getAllRegularHabits()

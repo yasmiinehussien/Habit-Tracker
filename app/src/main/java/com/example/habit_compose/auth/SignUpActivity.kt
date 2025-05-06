@@ -1,4 +1,4 @@
-package com.example.habit_compose
+package com.example.habit_compose.auth
 
 
 import android.content.Intent
@@ -32,6 +32,7 @@ import com.google.android.gms.auth.api.signin.*
 import com.google.firebase.auth.*
 
 import androidx.activity.result.ActivityResultLauncher
+import com.example.habit_compose.R
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
 
 

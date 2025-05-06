@@ -1,4 +1,4 @@
-package com.example.habit_compose
+package com.example.habit_compose.habits
 
 
 import android.widget.Toast
@@ -33,6 +33,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.habit_compose.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,11 +42,13 @@ import java.time.format.DateTimeFormatter
 
 
 @Composable
-fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavController) {
+fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavController) {
     val today = LocalDate.now()
     val selected = LocalDate.parse(selectedDate)
     val context = LocalContext.current
     val isToday = selected == today
+    val isPast = selected.isBefore(today)
+    val isFuture = selected.isAfter(today)
 
     var showDialog by remember { mutableStateOf(false) }
 
@@ -58,9 +61,10 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
 
     LaunchedEffect(habitId, selectedDate) {
 
-    scope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) {
             val foundHabit = db.habitDao().getAllHabits().find { it.id == habitId }
-            val habitProgress = db.habitProgressDao().getProgressForDate(habitId, selectedDate) // تعديل هنا
+            val habitProgress =
+                db.habitProgressDao().getProgressForDate(habitId, selectedDate) // تعديل هنا
 
             withContext(Dispatchers.Main) {
                 habit = foundHabit
@@ -73,11 +77,12 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
     habit?.let {
         val category = habitCategories.find { cat -> cat.title == it.categoryTag }
         val totalTimes = it.howOftenPerDay
-        val progress = if (isToday) {
-            (completedCount.toFloat() / totalTimes).coerceIn(0f, 1f)
-        } else {
+        val progress = if (isFuture) {
             0f
+        } else {
+            (completedCount.toFloat() / totalTimes).coerceIn(0f, 1f)
         }
+
 
 
 
@@ -105,7 +110,6 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Image(
                     painter = painterResource(id = category?.illustration ?: R.drawable.reading),
                     contentDescription = null,
@@ -189,7 +193,6 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
                                 fontSize = 17.sp,
                                 color = Color(0xFF333333)
                             )
-
                             Box(
                                 modifier = Modifier.size(140.dp),
                                 contentAlignment = Alignment.Center
@@ -255,12 +258,15 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
 
                             Spacer(modifier = Modifier.height(20.dp))
                             if (showDoneAnimation) {
-                                val composition by rememberLottieComposition(LottieCompositionSpec.Asset("done_animation.json"))
+                                val composition by rememberLottieComposition(
+                                    LottieCompositionSpec.Asset(
+                                        "done_animation.json"
+                                    )
+                                )
                                 val progressAnim by animateLottieCompositionAsState(
                                     composition,
                                     iterations = 1
                                 )
-
                                 LottieAnimation(
                                     composition = composition,
                                     progress = { progressAnim },
@@ -273,7 +279,11 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
                             Button(
                                 onClick = {
                                     if (!isToday) {
-                                        Toast.makeText(context, "You don't have access to modify this date's progress", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(
+                                            context,
+                                            "You don't have access to modify this date's progress",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     } else if (completedCount < totalTimes) {
                                         scope.launch(Dispatchers.IO) {
                                             val existingProgress = db.habitProgressDao()
@@ -298,9 +308,7 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
                                             }
                                         }
                                     }
-
-                                    },
-                                enabled = true,
+                                },
                                 shape = RoundedCornerShape(50),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = when {
@@ -320,11 +328,11 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String,navController: NavCont
                                     fontWeight = FontWeight.SemiBold
                                 )
                             }
+
                         }
                     }
                 }
 //
-
                 if (showDialog) {
                     AlertDialog(
                         onDismissRequest = { showDialog = false },

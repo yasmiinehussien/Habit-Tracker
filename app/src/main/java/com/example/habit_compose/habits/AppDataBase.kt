@@ -1,8 +1,4 @@
-package com.example.habit_compose
-
-
-
-
+package com.example.habit_compose.habits
 
 import android.content.Context
 import androidx.room.Database

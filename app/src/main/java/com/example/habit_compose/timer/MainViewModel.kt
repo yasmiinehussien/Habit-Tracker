@@ -1,10 +1,12 @@
-package com.example.habit_compose
+package com.example.habit_compose.timer
 
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 import kotlin.time.Duration
@@ -26,7 +28,7 @@ class MainViewModel : ViewModel() {
     var remainingTime by mutableStateOf(0L)
 
     var isCountdownMode by mutableStateOf(false)
-
+    var onTimerFinished: (() -> Unit)? = null
     fun start(initialDuration:Duration ?=null,countdown :Boolean=false) {
         isCountdownMode=countdown
 
@@ -40,10 +42,11 @@ class MainViewModel : ViewModel() {
             if(isCountdownMode){
                 time=time.minus(1.seconds)
                 updateTimeStates()
+
                 if(time <=Duration.ZERO){
                     stop()
                     isPlaying=false
-
+                    onTimerFinished?.invoke()
                 }
             }else{
                 time = time.plus(1.seconds)

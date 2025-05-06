@@ -1,4 +1,4 @@
-package com.example.habit_compose
+package com.example.habit_compose.notification
 
 import android.annotation.SuppressLint
 import android.app.AlarmManager

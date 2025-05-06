@@ -1,4 +1,4 @@
-package com.example.habit_compose
+package com.example.habit_compose.timer
 
 
 import androidx.compose.foundation.layout.*
@@ -11,16 +11,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun CountdownTimer(viewModel: MainViewModel
-                   , hour: Int, minute: Int, second: Int
-                   ,onStop: () -> Unit)
-{
+fun CountdownTimer(
+    viewModel: MainViewModel,
+    hour: Int, minute: Int, second: Int,
+    onStop: () -> Unit
+) {
+    
     val totalSeconds = (hour * 3600) + (minute * 60) + second
 
     val progress = remember(viewModel.seconds, viewModel.minutes, viewModel.hours) {
