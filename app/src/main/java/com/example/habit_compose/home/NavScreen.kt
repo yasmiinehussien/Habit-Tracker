@@ -19,11 +19,13 @@ import androidx.navigation.compose.*
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.habit_compose.habits.AppDatabase
 import com.example.habit_compose.habits.HabitCategoryScreen
 import com.example.habit_compose.habits.HabitDetailsScreen
 import com.example.habit_compose.habits.HabitFormScreen
@@ -170,11 +172,17 @@ fun TabsNavGraph(
     selectedIndex: Int,
     onTabSelected: (Int) -> Unit
 ) {
+    val context = LocalContext.current
+    val db = remember { AppDatabase.getDatabase(context) }  // استدعي الداتابيز مره واحده بس
+    val dao = remember { db.habitProgressDao() }  // جيبي الـ DAO
     when (selectedIndex) {
         0 -> HomeScreen(navController)
         1 -> TimerScreen(onBack = { onTabSelected(0) })
         2 -> HabitCategoryScreen(navController, onBack = { onTabSelected(0) })
-        3 -> HabitTrackerStatsScreen(onBack = { onTabSelected(0) })
+        3 -> HabitTrackerStatsScreen(
+            onBack = { onTabSelected(0) },
+            dao = dao  // مرري الـ DAO هنا
+        )
         4 -> ProfileScreen(onBack = { onTabSelected(0) })
         else -> PlaceholderScreen()
     }
