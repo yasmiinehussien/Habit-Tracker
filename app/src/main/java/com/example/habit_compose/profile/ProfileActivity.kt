@@ -34,11 +34,20 @@ import com.example.habit_compose.welcome.WelcomeScreenActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.NightsStay
+import com.example.habit_compose.ui.theme.ThemeViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+
+
 
 @Composable
-fun ProfileScreen(onBack:()->Unit={}) {
+fun ProfileScreen(onBack: () -> Unit = {}) {
     BackHandler { onBack() }
     val context = LocalContext.current
+    val themeViewModel: ThemeViewModel = viewModel()
+    val isDarkModeEnabled by themeViewModel.isDarkTheme.collectAsState()
 
     var imageUri by rememberSaveable { mutableStateOf("") }
 
@@ -63,7 +72,6 @@ fun ProfileScreen(onBack:()->Unit={}) {
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Image and Edit Photo Button (same as before)
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
@@ -72,7 +80,7 @@ fun ProfileScreen(onBack:()->Unit={}) {
                 shape = CircleShape,
                 modifier = Modifier
                     .size(150.dp)
-                    .border(4.dp, Color(0xFF8B5EDE), CircleShape)
+                    .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
             ) {
                 Image(
                     painter = painter,
@@ -86,7 +94,6 @@ fun ProfileScreen(onBack:()->Unit={}) {
             Spacer(modifier = Modifier.width(16.dp))
             val username = getUsername()
 
-
             Column(
                 modifier = Modifier
                     .height(150.dp)
@@ -97,25 +104,26 @@ fun ProfileScreen(onBack:()->Unit={}) {
                     text = "$username",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
                 Button(
                     onClick = { launcher.launch("image/*") },
                     modifier = Modifier.align(Alignment.End),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B5EDC))
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     Text(
                         text = "Edit Photo",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
-
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -125,7 +133,8 @@ fun ProfileScreen(onBack:()->Unit={}) {
             Icon(
                 imageVector = Icons.Default.Notifications,
                 contentDescription = "Notification Icon",
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -133,8 +142,8 @@ fun ProfileScreen(onBack:()->Unit={}) {
             Text(
                 text = "Notification",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -145,13 +154,14 @@ fun ProfileScreen(onBack:()->Unit={}) {
                 checked = isSwitchOn,
                 onCheckedChange = { isSwitchOn = it },
                 colors = SwitchDefaults.colors(
-                    checkedTrackColor = Color(0xFF7441BE),
-                    uncheckedTrackColor = Color(0xFFD0D0D0)
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-
             )
         }
+
         Spacer(modifier = Modifier.height(32.dp))
 
         Row(
@@ -162,7 +172,8 @@ fun ProfileScreen(onBack:()->Unit={}) {
             Icon(
                 imageVector = Icons.Default.DomainVerification,
                 contentDescription = "Vacation mode",
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -170,8 +181,8 @@ fun ProfileScreen(onBack:()->Unit={}) {
             Text(
                 text = "Vacation mode",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -182,23 +193,58 @@ fun ProfileScreen(onBack:()->Unit={}) {
                 checked = isSwitchOn,
                 onCheckedChange = { isSwitchOn = it },
                 colors = SwitchDefaults.colors(
-                    checkedTrackColor = Color(0xFF7831DC),
-                    uncheckedTrackColor = Color(0xFFD0D0D0)
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
 
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Default.NightsStay,
+                contentDescription = "Dark Mode",
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                text = "Dark Mode",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Switch(
+                checked = isDarkModeEnabled,
+                onCheckedChange = {
+                    themeViewModel.toggleDarkMode(it)
+                },
+                colors = SwitchDefaults.colors(
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
 
         Button(
             onClick = {
-
-
-                FirebaseAuth.getInstance().signOut()  // ✅ Sign out from Firebase
-
-                // If you use Google Sign In too
+                FirebaseAuth.getInstance().signOut()
                 val googleSignInClient = GoogleSignIn.getClient(
                     context,
                     GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -206,23 +252,22 @@ fun ProfileScreen(onBack:()->Unit={}) {
                         .build()
                 )
                 googleSignInClient.signOut().addOnCompleteListener {
-                    // After signing out, go to WelcomeScreenActivity
                     val intent = Intent(context, WelcomeScreenActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     context.startActivity(intent)
                 }
-
-
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B36A1))
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
         ) {
             Text(
                 text = "Logout",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -232,5 +277,7 @@ fun ProfileScreen(onBack:()->Unit={}) {
 @Preview(showSystemUi = true)
 @Composable
 fun ProfileScreenPreview() {
-    ProfileScreen()
+    MaterialTheme {
+        ProfileScreen()
+    }
 }

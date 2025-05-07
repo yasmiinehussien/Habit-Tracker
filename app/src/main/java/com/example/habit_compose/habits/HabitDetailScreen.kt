@@ -1,6 +1,5 @@
 package com.example.habit_compose.habits
 
-
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -40,7 +39,6 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-
 @Composable
 fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavController) {
     val today = LocalDate.now()
@@ -52,7 +50,6 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
 
     var showDialog by remember { mutableStateOf(false) }
 
-
     val db = remember { AppDatabase.getDatabase(context) }
     var habit by remember { mutableStateOf<Habit?>(null) }
     val scope = rememberCoroutineScope()
@@ -60,11 +57,9 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
     var showDoneAnimation by remember { mutableStateOf(false) }
 
     LaunchedEffect(habitId, selectedDate) {
-
         scope.launch(Dispatchers.IO) {
             val foundHabit = db.habitDao().getAllHabits().find { it.id == habitId }
-            val habitProgress =
-                db.habitProgressDao().getProgressForDate(habitId, selectedDate) // تعديل هنا
+            val habitProgress = db.habitProgressDao().getProgressForDate(habitId, selectedDate)
 
             withContext(Dispatchers.Main) {
                 habit = foundHabit
@@ -72,7 +67,6 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
             }
         }
     }
-
 
     habit?.let {
         val category = habitCategories.find { cat -> cat.title == it.categoryTag }
@@ -83,15 +77,10 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
             (completedCount.toFloat() / totalTimes).coerceIn(0f, 1f)
         }
 
-
-
-
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
-
-                .background(Color(0xFFF5F5FF))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             Column(
                 modifier = Modifier
@@ -106,7 +95,7 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                     text = it.name,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF3C3C3C)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -121,24 +110,21 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(10.dp, RoundedCornerShape(28.dp)),
                     shape = RoundedCornerShape(50.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(
                         modifier = Modifier.padding(bottom = 24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFFD8F0FF))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .padding(16.dp)
                         ) {
                             Row(
@@ -150,13 +136,13 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                                     Icon(
                                         Icons.Default.DateRange,
                                         contentDescription = null,
-                                        tint = Color(0xFF6D6D6D)
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Column {
                                         Text(
                                             "Date",
-                                            color = Color.DarkGray,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Medium
                                         )
@@ -165,7 +151,8 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                                                 DateTimeFormatter.ofPattern("dd MMM yyyy")
                                             ),
                                             fontWeight = FontWeight.SemiBold,
-                                            fontSize = 14.sp
+                                            fontSize = 14.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
                                 }
@@ -174,12 +161,11 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                                     Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = "Delete habit",
-                                        tint = Color.Gray
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
                         }
-
 
                         Column(
                             modifier = Modifier
@@ -188,21 +174,22 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                "Goal Previews",
+                                "Goal Progress",
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 17.sp,
-                                color = Color(0xFF333333)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Box(
                                 modifier = Modifier.size(140.dp),
                                 contentAlignment = Alignment.Center
                             ) {
+                                val colors = MaterialTheme.colorScheme // Retrieve current color scheme
                                 Canvas(modifier = Modifier.fillMaxSize()) {
                                     val canvasWidth = size.width
                                     val canvasHeight = size.height
 
                                     drawArc(
-                                        color = Color(0xFF2196F3),
+                                        color = colors.primary,
                                         startAngle = -90f,
                                         sweepAngle = progress * 360f,
                                         useCenter = false,
@@ -211,7 +198,7 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
 
                                     val padding = 18f
                                     drawArc(
-                                        color = Color(0xFFFF7EB3),
+                                        color = colors.secondary,
                                         startAngle = -90f,
                                         sweepAngle = 360f,
                                         useCenter = false,
@@ -228,7 +215,7 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                                     text = "${(progress * 100).toInt()}%",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 22.sp,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
@@ -236,14 +223,14 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
 
                             Box(
                                 modifier = Modifier
-                                    .background(Color(0xFFF0F0F0), RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         Icons.Default.DateRange,
                                         contentDescription = null,
-                                        tint = Color.Gray,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
@@ -251,7 +238,7 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                                         text = "progress task: ${(progress * 100).toInt()}%",
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = Color(0xFF889389)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -259,9 +246,7 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                             Spacer(modifier = Modifier.height(20.dp))
                             if (showDoneAnimation) {
                                 val composition by rememberLottieComposition(
-                                    LottieCompositionSpec.Asset(
-                                        "done_animation.json"
-                                    )
+                                    LottieCompositionSpec.Asset("done_animation.json")
                                 )
                                 val progressAnim by animateLottieCompositionAsState(
                                     composition,
@@ -288,8 +273,7 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                                         scope.launch(Dispatchers.IO) {
                                             val existingProgress = db.habitProgressDao()
                                                 .getProgressForDate(habitId, selectedDate)
-                                            val newCount =
-                                                (existingProgress?.completedCount ?: 0) + 1
+                                            val newCount = (existingProgress?.completedCount ?: 0) + 1
 
                                             val progress = HabitProgress(
                                                 habitId = habitId,
@@ -312,9 +296,9 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                                 shape = RoundedCornerShape(50),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = when {
-                                        !isToday -> Color.LightGray
-                                        progress >= 1f -> Color(0xFFACE7AE)
-                                        else -> Color(0xFFCCF2FF)
+                                        !isToday -> MaterialTheme.colorScheme.surfaceVariant
+                                        progress >= 1f -> MaterialTheme.colorScheme.tertiaryContainer
+                                        else -> MaterialTheme.colorScheme.primaryContainer
                                     }
                                 ),
                                 modifier = Modifier
@@ -324,23 +308,25 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                                 Text(
                                     text = if (progress >= 1f) "Done" else "Complete Task",
                                     fontSize = 15.sp,
-                                    color = Color.Black,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             }
-
                         }
                     }
                 }
-//
+
                 if (showDialog) {
                     AlertDialog(
                         onDismissRequest = { showDialog = false },
                         title = {
-                            Text("Delete Habit")
+                            Text("Delete Habit", color = MaterialTheme.colorScheme.onSurface)
                         },
                         text = {
-                            Text("Are you sure you want to delete this habit?")
+                            Text(
+                                "Are you sure you want to delete this habit?",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         },
                         confirmButton = {
                             TextButton(onClick = {
@@ -351,14 +337,16 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                                 Toast.makeText(context, "Habit deleted", Toast.LENGTH_SHORT).show()
                                 navController.popBackStack()
                             }) {
-                                Text("Delete", color = Color.Red)
+                                Text("Delete", color = MaterialTheme.colorScheme.error)
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = { showDialog = false }) {
-                                Text("Cancel")
+                                Text("Cancel", color = MaterialTheme.colorScheme.primary)
                             }
-                        }
+                        },
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        textContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Spacer(modifier = Modifier.height(24.dp))

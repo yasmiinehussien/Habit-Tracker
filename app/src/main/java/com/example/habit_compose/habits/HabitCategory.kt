@@ -1,7 +1,6 @@
 package com.example.habit_compose.habits
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.*
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -51,17 +50,14 @@ val habitCategories = listOf(
     HabitCategory("Reading", "Focus", R.drawable.back_water, R.drawable.reading, Color(0xFFFFA726)),
     HabitCategory("Journaling", "Mindfulness", R.drawable.back_yoga, R.drawable.reading, Color(0xFF5C6BC0)),
     HabitCategory("Sleep Early", "Health", R.drawable.sport_back, R.drawable.sleep, Color(0xFF26A69A)),
-
     HabitCategory("Pray", "Religion", R.drawable.back_yoga, R.drawable.pray, Color(0xFF8D6E63)),
     HabitCategory("Quran", "Religion", R.drawable.back_water, R.drawable.quran, Color(0xFF8D6E63)),
-
-
     HabitCategory("Gratitude", "Positivity", R.drawable.back_yoga, R.drawable.grateful, Color(0xFF8D6E63)),
     HabitCategory("Time Management", "Productivity", R.drawable.back_water, R.drawable.time_mangament, Color(0xFF7E57C2)),
     HabitCategory("Learn New Skill", "Growth", R.drawable.back_water, R.drawable.learning_newskill, Color(0xFFEC407A))
 )
 @Composable
-fun HabitCategoryScreen(navController: NavController,onBack:()->Unit={}) {
+fun HabitCategoryScreen(navController: NavController, onBack: () -> Unit = {}) {
     BackHandler { onBack() }
     var showSearchBar by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
@@ -78,7 +74,7 @@ fun HabitCategoryScreen(navController: NavController,onBack:()->Unit={}) {
         }
     }
     Surface(
-        color = Color(0xFFF5F7FA),
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
@@ -92,7 +88,7 @@ fun HabitCategoryScreen(navController: NavController,onBack:()->Unit={}) {
                 text = "Your Habits",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF1B1B1B),
+                color = MaterialTheme.colorScheme.onBackground,
                 letterSpacing = 0.5.sp,
                 modifier = Modifier.padding(bottom = 20.dp)
             )
@@ -108,10 +104,9 @@ fun HabitCategoryScreen(navController: NavController,onBack:()->Unit={}) {
                     }
                 }
             }
-
-        }
         }
     }
+}
 @Composable
 fun HabitCardStyled(habit: HabitCategory, index: Int, onClick: () -> Unit) {
     val animatedAlpha = remember { Animatable(0f) }
@@ -139,7 +134,7 @@ fun HabitCardStyled(habit: HabitCategory, index: Int, onClick: () -> Unit) {
             .fillMaxWidth()
             .height(260.dp)
             .shadow(12.dp, RoundedCornerShape(26.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         onClick = onClick,
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
@@ -151,7 +146,10 @@ fun HabitCardStyled(habit: HabitCategory, index: Int, onClick: () -> Unit) {
                     .clip(RoundedCornerShape(26.dp))
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color(0xFFDFF5EC), Color.Transparent)
+                            colors = listOf(
+                                MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.1f),
+                                Color.Transparent
+                            )
                         )
                     )
             )
@@ -196,7 +194,7 @@ fun HabitCardStyled(habit: HabitCategory, index: Int, onClick: () -> Unit) {
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.6.sp,
-                    color = Color(0xFF1B1B1F)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))

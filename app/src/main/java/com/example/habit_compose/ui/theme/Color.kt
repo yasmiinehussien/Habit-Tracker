@@ -22,7 +22,7 @@ val LightOnSurface = Color(0xFF000000)        // نص فوق الكروت
 // Dark Theme Colors
 val DarkPrimary = Color(0xFFBB86FC)           // بنفسجي مضيء شوية
 val DarkSecondary = Color(0xFF625b71)         // أخضر مصفر شوية (Accent داكن)
-val DarkBackground = Color(0xFF121212)        // خلفية دارك
+val DarkBackground = Color(0xFF2D2B2B)        // خلفية دارك
 val DarkSurface = Color(0xFF1E1E1E)            // كروت دارك
 val DarkOnPrimary = Color(0xFF000000)          // نص على البرايمري
 val DarkOnBackground = Color(0xFFFFFFFF)      // نص على خلفية دارك

@@ -47,7 +47,6 @@ fun StopwatchScreenWithBackground(
     onStop: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-
         StopwatchUI(
             isPlaying = isPlaying,
             seconds = seconds,
@@ -81,9 +80,9 @@ private fun StopwatchUI(
     ) {
         Spacer(modifier = Modifier.height(23.dp))
         Text(
-            text = "Challenge yourself now !",
+            text = "Challenge yourself now!",
             style = MaterialTheme.typography.headlineMedium,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 26.dp)
         )
 
@@ -95,11 +94,17 @@ private fun StopwatchUI(
             modifier = Modifier.fillMaxWidth()
         ) {
             CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.displaySmall) {
-                AnimatedContent(targetState = hours) { Text(it, color = Color.Black) }
-                Text(":", color = Color.Black)
-                AnimatedContent(targetState = minutes) { Text(it, color = Color.Black) }
-                Text(":", color = Color.Black)
-                AnimatedContent(targetState = seconds) { Text(it, color = Color.Black) }
+                AnimatedContent(targetState = hours) {
+                    Text(it, color = MaterialTheme.colorScheme.onSurface)
+                }
+                Text(":", color = MaterialTheme.colorScheme.onSurface)
+                AnimatedContent(targetState = minutes) {
+                    Text(it, color = MaterialTheme.colorScheme.onSurface)
+                }
+                Text(":", color = MaterialTheme.colorScheme.onSurface)
+                AnimatedContent(targetState = seconds) {
+                    Text(it, color = MaterialTheme.colorScheme.onSurface)
+                }
             }
         }
 
@@ -114,10 +119,16 @@ private fun StopwatchUI(
                     IconButton(
                         onClick = onPause,
                         modifier = Modifier
-                            .background(Color(0xFF2196F3), RoundedCornerShape(50))
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                RoundedCornerShape(50))
                             .padding(12.dp)
                     ) {
-                        Icon(Icons.Filled.Pause, contentDescription = "Pause")
+                        Icon(
+                            Icons.Filled.Pause,
+                            contentDescription = "Pause",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     }
                 } else {
                     IconButton(
@@ -126,10 +137,16 @@ private fun StopwatchUI(
                             hasStarted = true
                         },
                         modifier = Modifier
-                            .background(Color(0xFF7A49D5), RoundedCornerShape(50))
+                            .background(
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(50))
                             .padding(12.dp)
                     ) {
-                        Icon(Icons.Filled.PlayArrow, contentDescription = "Play")
+                        Icon(
+                            Icons.Filled.PlayArrow,
+                            contentDescription = "Play",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 }
             }
@@ -141,10 +158,16 @@ private fun StopwatchUI(
                         hasStarted = false
                     },
                     modifier = Modifier
-                        .background(Color(0xFF7A49D5), RoundedCornerShape(50))
-                        .padding(top=12.dp)
+                        .background(
+                            MaterialTheme.colorScheme.primary,
+                            RoundedCornerShape(50))
+                        .padding(12.dp)
                 ) {
-                    Icon(Icons.Filled.Stop, contentDescription = "Stop")
+                    Icon(
+                        Icons.Filled.Stop,
+                        contentDescription = "Stop",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             }
         }
@@ -153,14 +176,15 @@ private fun StopwatchUI(
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    StopwatchUI(
-        isPlaying = false,
-        seconds = "00",
-        minutes = "00",
-        hours = "00"
-    )
+    MaterialTheme {
+        StopwatchUI(
+            isPlaying = false,
+            seconds = "00",
+            minutes = "00",
+            hours = "00"
+        )
+    }
 }

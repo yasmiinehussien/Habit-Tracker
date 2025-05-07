@@ -1,5 +1,6 @@
 [versions]
 agp = "8.7.3"
+androidxMaterial3 = "<latest_version>"
 kotlin = "2.1.0"
 coreKtx = "1.12.0"
 junit = "4.13.2"
@@ -11,8 +12,10 @@ composeBom = "2024.04.01"
 composeCompiler = "2.0.0"
 
 firebaseAuthKtx = "23.2.0"
+runtimeLivedata = "1.8.0"
 
 [libraries]
+androidx-compose-material3-material32 = { module = "androidx.compose.material3:material3", version.ref = "androidxMaterial3" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -29,6 +32,7 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-animation = { group = "androidx.compose.animation", name = "animation"}
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

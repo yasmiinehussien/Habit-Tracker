@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -97,6 +98,13 @@ dependencies {
 
     implementation("com.github.anhaki:PickTime-Compose:1.1.2")
     implementation ("com.airbnb.android:lottie-compose:6.1.0")
+
+    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+
+        implementation (libs.androidx.compose.material3.material32)
+
+
+
 
 
 }

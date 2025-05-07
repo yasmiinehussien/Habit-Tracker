@@ -10,7 +10,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -73,20 +72,26 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-
+import androidx.activity.compose.setContent
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import com.example.habit_compose.ui.theme.ThemeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
-            HabitTrackerTheme  {
+            val themeViewModel: ThemeViewModel = viewModel()
+            val isDarkModeEnabled by themeViewModel.isDarkTheme.collectAsState()
 
+            HabitTrackerTheme(darkTheme = isDarkModeEnabled) {
                 NavScreen()
-
             }
         }
-
     }
 }
 
@@ -102,8 +107,6 @@ fun mapDayOfWeekToIndex(day: java.time.DayOfWeek): Int {
     }
 }
 
-
-
 @Composable
 fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedDate: LocalDate) {
     val categoryMap = habitCategories.associateBy { it.title }
@@ -112,7 +115,7 @@ fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedD
         modifier = Modifier
             .padding(16.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .fillMaxSize()
     ) {
         if (habits.isEmpty()) {
@@ -126,7 +129,6 @@ fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedD
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Lottie Animation
                 LottieAnimation(
                     composition = composition,
                     progress = { progress },
@@ -138,11 +140,10 @@ fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedD
                 Text(
                     text = "Let's add your first habit!",
                     style = MaterialTheme.typography.bodyLarge,
-                    color =Color(0xFF7D54D2)
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
-        }
-        else {
+        } else {
             Column(modifier = Modifier.padding(16.dp)) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
@@ -152,7 +153,6 @@ fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedD
                 ) {
                     items(habits) { habit ->
                         val category = categoryMap[habit.categoryTag]
-                        // or habit.categoryTag
                         HabitCardFromDb(habit, category, navController, selectedDate)
                     }
                 }
@@ -160,19 +160,18 @@ fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedD
         }
     }
 }
+
 fun getUsername(): String {
     val user = FirebaseAuth.getInstance().currentUser
     return user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest"
 }
-
-
 
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
 
-    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
     var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
 
     val scope = rememberCoroutineScope()
@@ -181,7 +180,6 @@ fun HomeScreen(navController: NavController) {
     val today = calenderData.today
     val weekDates = calenderData.getWeekDates()
     val selectedDate = rememberSaveable { mutableStateOf(today) }
-
 
     fun loadHabits(dateSelected: LocalDate) {
         scope.launch(Dispatchers.IO) {
@@ -212,8 +210,6 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-
-
     fun loadTasks(dateSelected: LocalDate) {
         scope.launch(Dispatchers.IO) {
             val tasks = db.habitDao().getAllOneTimeTasks()
@@ -228,21 +224,13 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-
-
-
-
-
     LaunchedEffect(selectedTab, selectedDate.value, savedHabits) {
         if (selectedTab == 0) {
             loadHabits(selectedDate.value)
         } else {
-            loadTasks(selectedDate.value) // pass selected date here
+            loadTasks(selectedDate.value)
         }
     }
-
-    val GreenPrimary = Color(0xFF7A49D5)
-    val LightGreenSurface = Color(0xFFE0F2E9)
 
     Column {
         HeadIcons()
@@ -257,20 +245,13 @@ fun HomeScreen(navController: NavController) {
                     isSelected = date.date == selectedDate.value,
                     onClick = {
                         selectedDate.value = date.date
-
                         scope.launch(Dispatchers.IO) {
                             val allHabits = db.habitDao().getAllHabits()
-
                             val selectedDayOfWeek = mapDayOfWeekToIndex(date.date.dayOfWeek).toString()
                             val selectedDateStr = date.date.toString()
 
                             val filtered = allHabits.filter { habit ->
-
-
                                 if (selectedTab == 0 && habit.isRegularHabit) {
-                                    // Habits tab: check repeat type
-                                    //val selectedDateStr = date.date.toString()
-
                                     val endsAfterOrEqual = habit.endDate.isNullOrEmpty() ||
                                             LocalDate.parse(habit.endDate).isAfter(date.date) ||
                                             LocalDate.parse(habit.endDate).isEqual(date.date)
@@ -279,22 +260,16 @@ fun HomeScreen(navController: NavController) {
                                         LocalDate.parse(habit.createdDate).isBefore(date.date) ||
                                                 LocalDate.parse(habit.createdDate).isEqual(date.date)
 
-
-
                                     if (habit.repeatFrequency == "Daily") {
                                         endsAfterOrEqual && startsBeforeOrEqual
                                     } else if (habit.repeatFrequency == "Weekly") {
                                         habit.daysSelected.split(",").contains(selectedDayOfWeek) &&
                                                 endsAfterOrEqual && startsBeforeOrEqual
                                     } else {
-                                        false // avoid accidentally including incorrect frequency
+                                        false
                                     }
-
-
                                 } else if (selectedTab == 1 && !habit.isRegularHabit) {
-                                     habit.taskDate == selectedDateStr
-
-                                    // Tasks tab: show tasks only for exact taskDate
+                                    habit.taskDate == selectedDateStr
                                 } else {
                                     false
                                 }
@@ -305,18 +280,16 @@ fun HomeScreen(navController: NavController) {
                             }
                         }
                     }
-
                 )
             }
         }
 
-        // 🟪 Tabs below the Calendar now
         Card(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = LightGreenSurface)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Row(
                 Modifier
@@ -329,7 +302,7 @@ fun HomeScreen(navController: NavController) {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(if (selectedTab == index) GreenPrimary else Color.Transparent)
+                            .background(if (selectedTab == index) MaterialTheme.colorScheme.primary else Color.Transparent)
                             .clickable {
                                 selectedTab = index
                             }
@@ -338,7 +311,7 @@ fun HomeScreen(navController: NavController) {
                     ) {
                         Text(
                             text = title,
-                            color = if (selectedTab == index) Color.White else Color.Black,
+                            color = if (selectedTab == index) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp
                         )
@@ -347,19 +320,13 @@ fun HomeScreen(navController: NavController) {
             }
         }
 
-        // Habit/Task Cards
-        //HabitListFromDb(habits = savedHabits, navController = navController)
         HabitListFromDb(
             habits = savedHabits,
             navController = navController,
             selectedDate = selectedDate.value
         )
-
     }
 }
-
-
-
 
 @Composable
 fun HeadIcons() {
@@ -370,21 +337,17 @@ fun HeadIcons() {
             .padding(all = 28.dp)
             .padding(top = 10.dp)
     ) {
-
-
         Text(
-
             text = " $username ",
             fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
             fontSize = 21.sp,
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = "Let's make habits together!",
-            color = Color.Gray,
-            modifier = Modifier
-                .padding(top = 10.dp)
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 10.dp)
         )
-
     }
 }
 
@@ -396,12 +359,11 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
             .padding(vertical = 3.dp, horizontal = 14.dp)
             .clip(RoundedCornerShape(22.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color(0xFF6200EA) else Color(0xFFF6FEFF)
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
         ),
     ) {
         Column(
-            modifier = Modifier
-                .padding(4.dp)
+            modifier = Modifier.padding(4.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -412,7 +374,7 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     )
                     .clip(CircleShape)
                     .align(Alignment.CenterHorizontally)
-                    .background(Color(0xFFFDFDFD))
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 Text(
                     text = date,
@@ -422,7 +384,7 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     ),
-                    // color = if (isSelected) Color.White else Color.Black
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -435,22 +397,12 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     text = day,
                     modifier = Modifier.align(Alignment.Center),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) Color.White else Color(0xFF55C9D7)
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
                 )
             }
         }
     }
 }
-
-
-
-@Preview(showBackground = true, showSystemUi = true, device = "spec:width=411dp,height=891dp")
-@Composable
-fun HomeScreenPreview() {
-
-    NavScreen()
-}
-
 
 @Composable
 fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavController, selectedDate: LocalDate) {
@@ -473,19 +425,17 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
         modifier = Modifier
             .clickable {
                 navController.navigate("habit_details/${habit.id}/${selectedDate}")
-
-
             }
             .graphicsLayer {
                 alpha = animatedAlpha.value
                 translationY = animatedOffset.value
             }
             .fillMaxWidth()
-            .then(Modifier.widthIn(max = 450.dp)) // ✅ Wider card with limit
+            .then(Modifier.widthIn(max = 450.dp))
             .height(260.dp)
             .padding(horizontal = 8.dp)
             .shadow(12.dp, RoundedCornerShape(26.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -495,7 +445,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                     .clip(RoundedCornerShape(26.dp))
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color(0xFFDFF5EC), Color.Transparent)
+                            colors = listOf(MaterialTheme.colorScheme.surfaceVariant, Color.Transparent)
                         )
                     )
             )
@@ -540,7 +490,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp,
-                    color = Color(0xFF1B1B1F),
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
                 )
 
@@ -548,11 +498,11 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
 
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = category?.tagColor?.copy(alpha = 0.15f) ?: Color.LightGray,
+                    color = category?.tagColor?.copy(alpha = 0.15f) ?: MaterialTheme.colorScheme.surfaceVariant,
                     shadowElevation = 0.dp,
                     modifier = Modifier
-                        .height(34.dp) // ✅ Less height
-                        .widthIn(min = 140.dp) // ✅ Wider button
+                        .height(34.dp)
+                        .widthIn(min = 140.dp)
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -560,7 +510,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                     ) {
                         Text(
                             text = category?.tag ?: "Habit",
-                            color = category?.tagColor ?: Color.Black,
+                            color = category?.tagColor ?: MaterialTheme.colorScheme.onSurface,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1
@@ -570,4 +520,10 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
             }
         }
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun HomeScreenPreview() {
+    NavScreen()
 }

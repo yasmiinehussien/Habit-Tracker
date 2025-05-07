@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.*
-
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,13 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.habit_compose.HabitTrackerStatsScreen
 import com.example.habit_compose.habits.HabitCategoryScreen
 import com.example.habit_compose.habits.HabitDetailsScreen
 import com.example.habit_compose.habits.HabitFormScreen
-import com.example.habit_compose.statiistics.HabitTrackerStatsScreen
 import com.example.habit_compose.profile.ProfileScreen
 import com.example.habit_compose.timer.TimerScreen
-
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
@@ -61,7 +59,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination?.route
 
-    val showBottomBar = currentDestination?.startsWith("habit_") ==false
+    val showBottomBar = currentDestination?.startsWith("habit_") == false
 
 
     Scaffold(
@@ -77,7 +75,8 @@ fun NavScreen(modifier: Modifier = Modifier) {
                         .fillMaxWidth()
                         .height(if (isTablet) 100.dp else 90.dp)
                         .padding(bottom = 32.dp)
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.surface
                 ) {
                     AnimatedNavigationBar(
                         modifier = Modifier
@@ -91,7 +90,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
                         ),
                         indentAnimation = Height(tween(durationMillis = 300)),
                         barColor = MaterialTheme.colorScheme.surface,
-                        ballColor = Color(0xFF7852CC)
+                        ballColor = MaterialTheme.colorScheme.primary
                     ) {
 
                         navIconList.forEachIndexed { index, item ->
@@ -104,9 +103,9 @@ fun NavScreen(modifier: Modifier = Modifier) {
                                 contentAlignment = Alignment.Center
                             ) {
                                 val iconTint = when {
-                                    selectedIndex == index -> Color(0xFF2196F3) // مختارة
-                                    isAddIcon -> Color(0xFF943CFD) // لون مميز للـ Add
-                                    else -> Color.Gray
+                                    selectedIndex == index -> MaterialTheme.colorScheme.primary // Selected
+                                    isAddIcon -> MaterialTheme.colorScheme.primary // Unique color for Add
+                                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) // Default
                                 }
 
                                 Icon(
@@ -183,7 +182,7 @@ fun TabsNavGraph(
 @Composable
 fun PlaceholderScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Screen coming soon...", color = Color.Gray)
+        Text(text = "Screen coming soon...", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
     }
 }
 
