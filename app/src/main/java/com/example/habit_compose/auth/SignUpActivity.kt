@@ -34,6 +34,7 @@ import com.google.firebase.auth.*
 import androidx.activity.result.ActivityResultLauncher
 import com.example.habit_compose.R
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class SignUpActivity : ComponentActivity() {
@@ -48,13 +49,29 @@ class SignUpActivity : ComponentActivity() {
             auth.signInWithCredential(credential)
                 .addOnCompleteListener { task2 ->
                     if (task2.isSuccessful) {
-                        auth.currentUser?.sendEmailVerification()
-                        Toast.makeText(this, "Signed up with Google. Verification email sent!", Toast.LENGTH_LONG).show()
-                        finish()
+                        val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
+                        val email = auth.currentUser?.email ?: ""
+
+                        val user = hashMapOf(
+                            "email" to email,
+                            "userId" to userId
+                        )
+
+                        FirebaseFirestore.getInstance().collection("users").document(userId)
+                            .set(user)
+                            .addOnSuccessListener {
+                                auth.currentUser?.sendEmailVerification()
+                                Toast.makeText(this, "Signed up with Google. Verification email sent!", Toast.LENGTH_LONG).show()
+                                finish()
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(this, "Failed to save user to Firestore: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
                     } else {
                         Toast.makeText(this, "Google sign-in failed: ${task2.exception?.message}", Toast.LENGTH_LONG).show()
                     }
                 }
+
         } catch (e: Exception) {
             Toast.makeText(this, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
         }
@@ -135,21 +152,36 @@ fun SignUpScreen(
                 } else if (email.isBlank() || password.isBlank()) {
                     errorMessage = "Please fill all fields"
                 } else {
-                    isLoading = true
                     auth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
                             isLoading = false
                             if (task.isSuccessful) {
-                                auth.currentUser?.sendEmailVerification()
-                                Toast.makeText(activity, "Verification email sent. Please check your inbox.", Toast.LENGTH_LONG).show()
+                                val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
 
-                                val intent = Intent(activity, LoginActivity::class.java)
-                                activity.startActivity(intent)
-                                activity.finish()
+                                // add user ti firestore
+                                val user = hashMapOf(
+                                    "email" to email,
+                                    "userId" to userId
+                                )
+
+                                FirebaseFirestore.getInstance().collection("users").document(userId)
+                                    .set(user)
+                                    .addOnSuccessListener {
+                                        auth.currentUser?.sendEmailVerification()
+                                        Toast.makeText(activity, "Verification email sent. Please check your inbox.", Toast.LENGTH_LONG).show()
+
+                                        val intent = Intent(activity, LoginActivity::class.java)
+                                        activity.startActivity(intent)
+                                        activity.finish()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        errorMessage = "Failed to save user to Firestore: ${e.message}"
+                                    }
                             } else {
                                 errorMessage = "Error: ${task.exception?.message}"
                             }
                         }
+
                 }
             },
             modifier = Modifier.fillMaxWidth(),

@@ -66,7 +66,9 @@ import com.example.habit_compose.habits.AppDatabase
 import com.example.habit_compose.habits.Habit
 import com.example.habit_compose.habits.HabitCategory
 import com.example.habit_compose.R
+import com.example.habit_compose.habits.FirestoreRepository
 import com.example.habit_compose.habits.habitCategories
+import com.example.habit_compose.habits.toEntity
 import com.example.habit_compose.ui.theme.HabitTrackerTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -172,8 +174,27 @@ fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getDatabase(context) }
 
+    val firestoreRepository = remember { FirestoreRepository() }
+    val auth = FirebaseAuth.getInstance()
+    var savedHabits by remember { mutableStateOf(emptyList<Habit>()) }
+    val deletedHabitId by navController
+    .currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<Int?>("deleted_habit_id", null)
+        ?.collectAsState() ?: remember { mutableStateOf(null) }
+
+
+    LaunchedEffect(deletedHabitId) {
+        deletedHabitId?.let { id ->
+
+            savedHabits = savedHabits.filter { it.id != id }
+
+            navController.currentBackStackEntry?.savedStateHandle?.set("deleted_habit_id", null)
+        }
+    }
+
     var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
-    var savedHabits by remember { mutableStateOf(listOf<Habit>()) }
+
 
     val scope = rememberCoroutineScope()
 
@@ -185,10 +206,22 @@ fun HomeScreen(navController: NavController) {
 
     fun loadHabits(dateSelected: LocalDate) {
         scope.launch(Dispatchers.IO) {
+
             val habits = db.habitDao().getAllRegularHabits()
+
+            val firestoreHabits = if (auth.currentUser != null) {
+                firestoreRepository.getHabitsForUser().map { it.toEntity() }
+            } else {
+                emptyList()
+            }
+
+            // Merge and deduplicate
+            val allHabits = (habits + firestoreHabits).distinctBy { it.name }
+
+
             val selectedDayOfWeek = mapDayOfWeekToIndex(dateSelected.dayOfWeek).toString()
 
-            val filteredHabits = habits.filter { habit ->
+            val filteredHabits = allHabits.filter { habit ->
                 val endsAfterOrEqual = habit.endDate.isNullOrEmpty() ||
                         LocalDate.parse(habit.endDate).isAfter(dateSelected) ||
                         LocalDate.parse(habit.endDate).isEqual(dateSelected)
@@ -218,7 +251,17 @@ fun HomeScreen(navController: NavController) {
         scope.launch(Dispatchers.IO) {
             val tasks = db.habitDao().getAllOneTimeTasks()
 
-            val filteredTasks = tasks.filter { task ->
+            val firestoreTasks = if (auth.currentUser != null) {
+                firestoreRepository.getHabitsForUser()
+                    .filter { !it.isRegularHabit }
+                    .map { it.toEntity() }
+            } else {
+                emptyList()
+            }
+            // Merge and deduplicate
+            val allTasks = (tasks + firestoreTasks).distinctBy { it.name }
+
+            val filteredTasks = allTasks.filter { task ->
                 task.taskDate == dateSelected.toString()
             }
 

@@ -98,5 +98,5 @@ dependencies {
     implementation("com.github.anhaki:PickTime-Compose:1.1.2")
     implementation ("com.airbnb.android:lottie-compose:6.1.0")
 
-
+    implementation ("com.google.firebase:firebase-firestore-ktx")
 }

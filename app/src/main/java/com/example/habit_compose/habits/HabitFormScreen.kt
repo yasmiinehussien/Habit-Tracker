@@ -27,11 +27,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.habit_compose.notification.scheduleHabitNotification
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.ZoneId
+import java.util.Calendar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,6 +43,9 @@ import kotlinx.coroutines.withContext
 @Composable
 fun HabitFormScreen(navController: NavController, categoryTag: String)
 {
+    val firestoreRepository= remember { FirestoreRepository() }
+    val auth =FirebaseAuth.getInstance()
+
     val GreenPrimary = Color(0xFF7A49D5)
     val DarkGreen = Color(0xFF663AB6)
     val LightGreenSurface = Color(0xFFE0F2E9)
@@ -83,6 +90,8 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                 Button(
                     onClick = {
                         CoroutineScope(Dispatchers.IO).launch {
+                            val userId = auth.currentUser?.uid ?: throw Exception("User not logged in")
+                            // check in local Room DB for name
                             val existingNames = if (isRegularHabit) {
                                 db.habitDao().getAllRegularHabits().map { it.name.trim().lowercase() }
                             } else {
@@ -107,6 +116,38 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                                     return@withContext
                                 }
 
+                                val calculatedTaskDate=if (!isRegularHabit && daysSelected.size == 1) {
+                                    val selectedDayIndex = daysSelected.first().toInt()
+                                    val today = LocalDate.now()
+                                    val todayIndex = today.dayOfWeek.value % 7
+                                    val daysUntil = (selectedDayIndex - todayIndex + 7) % 7
+                                    val realDate = today.plusDays(daysUntil.toLong())
+                                    realDate.toString()
+                                } else null
+
+
+
+                                // Create the habit model
+                                val habit = HabitModel(
+                                    id = "", // Firestore will generate this
+                                    name = name.trim(),
+                                    repeatFrequency = repeatFrequency,
+                                    daysSelected = daysSelected.joinToString(","),
+                                    endDate = endDate,
+                                    endHabitOn = endHabitOn,
+                                    setReminder = setReminder,
+                                    howOftenPerDay = howOftenPerDay,
+                                    isRegularHabit = isRegularHabit,
+                                    categoryTag = categoryTag,
+                                    reminderTime = reminderTime,
+                                    taskDate = calculatedTaskDate,
+                                    createdDate = LocalDate.now().toString(),
+                                    userId = userId
+                                )
+                                // save to firestore DB
+                                CoroutineScope(Dispatchers.IO).launch { firestoreRepository.saveHabit(habit) }
+
+                                //save to room DB
                                 CoroutineScope(Dispatchers.IO).launch {
                                     db.habitDao().insertHabit(
                                         Habit(
@@ -120,15 +161,11 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                                             categoryTag = categoryTag,
                                             howOftenPerDay = howOftenPerDay,
                                             reminderTime = reminderTime,
-                                            taskDate = if (!isRegularHabit && daysSelected.size == 1) {
-                                                val selectedDayIndex = daysSelected.first().toInt()
-                                                val today = LocalDate.now()
-                                                val todayIndex = today.dayOfWeek.value % 7
-                                                val daysUntil = (selectedDayIndex - todayIndex + 7) % 7
-                                                val realDate = today.plusDays(daysUntil.toLong())
-                                                realDate.toString()
-                                            } else null,
-                                            createdDate = LocalDate.now().toString() // ✅ Important fix
+                                            taskDate = calculatedTaskDate,
+                                            createdDate = LocalDate.now()
+                                                .toString(),// ✅ Important fix
+                                            userId = userId,
+
                                         )
                                     )
 
@@ -402,7 +439,7 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
             if (showTimePicker) {
                 val context = LocalContext.current
                 LaunchedEffect(Unit) {
-                    val now = java.util.Calendar.getInstance()
+                    val now = Calendar.getInstance()
                     val dialog = TimePickerDialog(
                         context,
                         { _, hourOfDay, minute ->
@@ -412,14 +449,14 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                             reminderTime = String.format("%02d:%02d %s", hourFormatted, minute, amPm)
                             showTimePicker = false
                         },
-                        now.get(java.util.Calendar.HOUR_OF_DAY),
-                        now.get(java.util.Calendar.MINUTE),
+                        now.get(Calendar.HOUR_OF_DAY),
+                        now.get(Calendar.MINUTE),
                         true
                     )
 
                     dialog.setOnCancelListener {
                         showTimePicker = false
-                        setReminder = false //
+                        setReminder = false
                     }
 
                     dialog.show()
@@ -440,7 +477,7 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
 
 // DatePickerDialog must be OUTSIDE Row
             if (showDatePicker) {
-                val today = remember { java.time.LocalDate.now() }
+                val today = remember { LocalDate.now() }
                 val datePickerState = rememberDatePickerState(
                     initialSelectedDateMillis = System.currentTimeMillis()
                 )
@@ -450,8 +487,8 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                     confirmButton = {
                         TextButton(onClick = {
                             datePickerState.selectedDateMillis?.let { millis ->
-                                val selectedDate = java.time.Instant.ofEpochMilli(millis)
-                                    .atZone(java.time.ZoneId.systemDefault())
+                                val selectedDate = Instant.ofEpochMilli(millis)
+                                    .atZone(ZoneId.systemDefault())
                                     .toLocalDate()
 
                                 if (!selectedDate.isBefore(today)) {
