@@ -1,6 +1,5 @@
 package com.example.habit_compose.home
 
-
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,6 +30,7 @@ import com.example.habit_compose.habits.HabitDetailsScreen
 import com.example.habit_compose.habits.HabitFormScreen
 import com.example.habit_compose.statiistics.HabitTrackerStatsScreen
 import com.example.habit_compose.profile.ProfileScreen
+import com.example.habit_compose.quotes.QuoteScreen
 import com.example.habit_compose.timer.TimerScreen
 
 import com.exyte.animatednavbar.AnimatedNavigationBar
@@ -38,6 +38,7 @@ import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
 import java.time.LocalDate
+import kotlin.time.ExperimentalTime
 
 
 @Composable
@@ -63,7 +64,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination?.route
 
-    val showBottomBar = currentDestination?.startsWith("habit_") ==false
+    val showBottomBar = currentDestination?.startsWith("habit_") ==false && currentDestination != "quotes"
 
 
     Scaffold(
@@ -88,7 +89,6 @@ fun NavScreen(modifier: Modifier = Modifier) {
                         selectedIndex = selectedIndex,
                         cornerRadius = shapeCornerRadius(cornerRadius = 24.dp),
                         ballAnimation = Parabolic(
-
                             tween(durationMillis = 500)
                         ),
                         indentAnimation = Height(tween(durationMillis = 300)),
@@ -126,7 +126,7 @@ fun NavScreen(modifier: Modifier = Modifier) {
             }
         }
     ) { innerPadding ->
-        @OptIn(kotlin.time.ExperimentalTime::class)
+        @OptIn(ExperimentalTime::class)
         Box(modifier = Modifier.padding(innerPadding)) {
             NavHost(
                 navController = navController,
@@ -158,12 +158,13 @@ fun NavScreen(modifier: Modifier = Modifier) {
                     )
                 }
 
+                // Add the new route for quotes screen
+                composable("quotes") {
+                    QuoteScreen(onBack = { navController.popBackStack() })
+                }
             }
-
         }
-
     }
-
 }
 
 @Composable

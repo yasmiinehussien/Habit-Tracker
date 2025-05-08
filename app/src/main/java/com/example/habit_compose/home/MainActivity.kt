@@ -32,8 +32,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -178,7 +182,7 @@ fun HomeScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
     var savedHabits by remember { mutableStateOf(emptyList<Habit>()) }
     val deletedHabitId by navController
-    .currentBackStackEntry
+        .currentBackStackEntry
         ?.savedStateHandle
         ?.getStateFlow<Int?>("deleted_habit_id", null)
         ?.collectAsState() ?: remember { mutableStateOf(null) }
@@ -288,7 +292,8 @@ fun HomeScreen(navController: NavController) {
     val LightGreenSurface = Color(0xFFE0F2E9)
 
     Column {
-        HeadIcons()
+        // Pass the navController to HeadIcons here
+        HeadIcons(navController = navController)
 
         LazyRow(
             modifier = Modifier.padding(horizontal = 8.dp)
@@ -335,7 +340,7 @@ fun HomeScreen(navController: NavController) {
 
 
                                 } else if (selectedTab == 1 && !habit.isRegularHabit) {
-                                     habit.taskDate == selectedDateStr
+                                    habit.taskDate == selectedDateStr
 
                                     // Tasks tab: show tasks only for exact taskDate
                                 } else {
@@ -391,7 +396,6 @@ fun HomeScreen(navController: NavController) {
         }
 
         // Habit/Task Cards
-        //HabitListFromDb(habits = savedHabits, navController = navController)
         HabitListFromDb(
             habits = savedHabits,
             navController = navController,
@@ -400,12 +404,8 @@ fun HomeScreen(navController: NavController) {
 
     }
 }
-
-
-
-
 @Composable
-fun HeadIcons() {
+fun HeadIcons(navController: NavController) {
     val username = getUsername()
     Column(
         modifier = Modifier
@@ -414,9 +414,32 @@ fun HeadIcons() {
             .padding(top = 10.dp)
     ) {
 
+        Row(
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            // Add this quote icon button to navigate to the quotes screen
+            IconButton(
+                onClick = { navController.navigate("quotes") },
+                modifier = Modifier
+                    .size(48.dp)
+                    .shadow(8.dp, CircleShape)
+                    .clip(CircleShape)
+                    .background(Color(0xFFE0F2E9))
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.Notifications,
+                    contentDescription = "Motivational Quotes",
+                    modifier = Modifier.size(24.dp),
+                    tint = Color(0xFF7A49D5),
+                )
+            }
+
+        }
 
         Text(
-
             text = " $username ",
             fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
             fontSize = 21.sp,
@@ -427,9 +450,11 @@ fun HeadIcons() {
             modifier = Modifier
                 .padding(top = 10.dp)
         )
-
     }
 }
+
+
+
 
 @Composable
 fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit) {
@@ -490,7 +515,6 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
 @Preview(showBackground = true, showSystemUi = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun HomeScreenPreview() {
-
     NavScreen()
 }
 
@@ -516,8 +540,6 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
         modifier = Modifier
             .clickable {
                 navController.navigate("habit_details/${habit.id}/${selectedDate}")
-
-
             }
             .graphicsLayer {
                 alpha = animatedAlpha.value
