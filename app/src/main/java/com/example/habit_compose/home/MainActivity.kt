@@ -10,7 +10,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -60,6 +59,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
@@ -73,26 +73,46 @@ import com.example.habit_compose.R
 import com.example.habit_compose.habits.FirestoreRepository
 import com.example.habit_compose.habits.habitCategories
 import com.example.habit_compose.habits.toEntity
-import com.example.habit_compose.ui.theme.HabitTrackerTheme
+import com.example.habit_compose.ui.theme.AppTheme
+import com.example.habit_compose.data.UserPreferencesDataStore
+import com.example.habit_compose.profile.ProfileViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // جلب حالة الوضع الداكن قبل تحميل واجهة المستخدم
+        val userPreferences = UserPreferencesDataStore(this)
+        val initialDarkMode = runBlocking { userPreferences.isDarkModeEnabled.first() }
+
         setContent {
-            HabitTrackerTheme  {
+            // إعداد ViewModel للبروفايل
+            val profileViewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModel.Factory(this)
+            )
 
-                NavScreen()
+            // مراقبة حالة الوضع الداكن
+            val darkModeEnabled by profileViewModel.isDarkModeEnabled.collectAsState()
 
+            // تطبيق السمة المناسبة
+            AppTheme(darkTheme = darkModeEnabled) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    NavScreen()
+                }
             }
         }
-
     }
 }
 
@@ -108,8 +128,6 @@ fun mapDayOfWeekToIndex(day: java.time.DayOfWeek): Int {
     }
 }
 
-
-
 @Composable
 fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedDate: LocalDate) {
     val categoryMap = habitCategories.associateBy { it.title }
@@ -118,7 +136,7 @@ fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedD
         modifier = Modifier
             .padding(16.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(if(MaterialTheme.colorScheme.isLight()) Color.White else Color.DarkGray)
             .fillMaxSize()
     ) {
         if (habits.isEmpty()) {
@@ -144,7 +162,7 @@ fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedD
                 Text(
                     text = "Let's add your first habit!",
                     style = MaterialTheme.typography.bodyLarge,
-                    color =Color(0xFF7D54D2)
+                    color = Color(0xFF7D54D2)
                 )
             }
         }
@@ -166,12 +184,11 @@ fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedD
         }
     }
 }
+
 fun getUsername(): String {
     val user = FirebaseAuth.getInstance().currentUser
     return user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest"
 }
-
-
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -187,19 +204,14 @@ fun HomeScreen(navController: NavController) {
         ?.getStateFlow<Int?>("deleted_habit_id", null)
         ?.collectAsState() ?: remember { mutableStateOf(null) }
 
-
     LaunchedEffect(deletedHabitId) {
         deletedHabitId?.let { id ->
-
             savedHabits = savedHabits.filter { it.id != id }
-
             navController.currentBackStackEntry?.savedStateHandle?.set("deleted_habit_id", null)
         }
     }
 
     var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
-
-
     val scope = rememberCoroutineScope()
 
     val calenderData = remember { CalenderData() }
@@ -207,10 +219,8 @@ fun HomeScreen(navController: NavController) {
     val weekDates = calenderData.getWeekDates()
     val selectedDate = rememberSaveable { mutableStateOf(today) }
 
-
     fun loadHabits(dateSelected: LocalDate) {
         scope.launch(Dispatchers.IO) {
-
             val habits = db.habitDao().getAllRegularHabits()
 
             val firestoreHabits = if (auth.currentUser != null) {
@@ -221,7 +231,6 @@ fun HomeScreen(navController: NavController) {
 
             // Merge and deduplicate
             val allHabits = (habits + firestoreHabits).distinctBy { it.name }
-
 
             val selectedDayOfWeek = mapDayOfWeekToIndex(dateSelected.dayOfWeek).toString()
 
@@ -249,8 +258,6 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-
-
     fun loadTasks(dateSelected: LocalDate) {
         scope.launch(Dispatchers.IO) {
             val tasks = db.habitDao().getAllOneTimeTasks()
@@ -275,11 +282,6 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-
-
-
-
-
     LaunchedEffect(selectedTab, selectedDate.value, savedHabits) {
         if (selectedTab == 0) {
             loadHabits(selectedDate.value)
@@ -289,7 +291,7 @@ fun HomeScreen(navController: NavController) {
     }
 
     val GreenPrimary = Color(0xFF7A49D5)
-    val LightGreenSurface = Color(0xFFE0F2E9)
+    val LightGreenSurface = if(MaterialTheme.colorScheme.isLight()) Color(0xFFE0F2E9) else Color(0xFF2A3439)
 
     Column {
         // Pass the navController to HeadIcons here
@@ -313,8 +315,6 @@ fun HomeScreen(navController: NavController) {
                             val selectedDateStr = date.date.toString()
 
                             val filtered = allHabits.filter { habit ->
-
-
                                 if (selectedTab == 0 && habit.isRegularHabit) {
                                     // Habits tab: check repeat type
                                     //val selectedDateStr = date.date.toString()
@@ -327,8 +327,6 @@ fun HomeScreen(navController: NavController) {
                                         LocalDate.parse(habit.createdDate).isBefore(date.date) ||
                                                 LocalDate.parse(habit.createdDate).isEqual(date.date)
 
-
-
                                     if (habit.repeatFrequency == "Daily") {
                                         endsAfterOrEqual && startsBeforeOrEqual
                                     } else if (habit.repeatFrequency == "Weekly") {
@@ -337,11 +335,8 @@ fun HomeScreen(navController: NavController) {
                                     } else {
                                         false // avoid accidentally including incorrect frequency
                                     }
-
-
                                 } else if (selectedTab == 1 && !habit.isRegularHabit) {
                                     habit.taskDate == selectedDateStr
-
                                     // Tasks tab: show tasks only for exact taskDate
                                 } else {
                                     false
@@ -353,7 +348,6 @@ fun HomeScreen(navController: NavController) {
                             }
                         }
                     }
-
                 )
             }
         }
@@ -386,7 +380,7 @@ fun HomeScreen(navController: NavController) {
                     ) {
                         Text(
                             text = title,
-                            color = if (selectedTab == index) Color.White else Color.Black,
+                            color = if (selectedTab == index) Color.White else MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp
                         )
@@ -401,60 +395,65 @@ fun HomeScreen(navController: NavController) {
             navController = navController,
             selectedDate = selectedDate.value
         )
-
     }
 }
+
+// Extension function to check if color scheme is light
+@Composable
+fun androidx.compose.material3.ColorScheme.isLight(): Boolean {
+    return this.background.luminance() > 0.5f
+}
+
 @Composable
 fun HeadIcons(navController: NavController) {
     val username = getUsername()
+
+    // تحسين تنسيق الهيدر: نقل كل العناصر إلى صف واحد
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(all = 28.dp)
-            .padding(top = 10.dp)
+            .padding(horizontal = 28.dp, vertical = 16.dp)
     ) {
-
+        // الصف الرئيسي - اسم المستخدم على اليمين وأيقونة الاقتباسات على اليسار
         Row(
-            verticalAlignment = Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Add this quote icon button to navigate to the quotes screen
+            // قسم اسم المستخدم على اليمين
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = username,
+                    fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
+                    fontSize = 21.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Let's make habits together!",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
+            // أيقونة الاقتباسات على اليسار
             IconButton(
                 onClick = { navController.navigate("quotes") },
                 modifier = Modifier
                     .size(48.dp)
                     .shadow(8.dp, CircleShape)
                     .clip(CircleShape)
-                    .background(Color(0xFFE0F2E9))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.Notifications,
                     contentDescription = "Motivational Quotes",
                     modifier = Modifier.size(24.dp),
-                    tint = Color(0xFF7A49D5),
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
-
         }
-
-        Text(
-            text = " $username ",
-            fontFamily = FontFamily(Typeface.DEFAULT_BOLD),
-            fontSize = 21.sp,
-        )
-        Text(
-            text = "Let's make habits together!",
-            color = Color.Gray,
-            modifier = Modifier
-                .padding(top = 10.dp)
-        )
     }
 }
-
-
-
 
 @Composable
 fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit) {
@@ -464,7 +463,7 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
             .padding(vertical = 3.dp, horizontal = 14.dp)
             .clip(RoundedCornerShape(22.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color(0xFF6200EA) else Color(0xFFF6FEFF)
+            containerColor = if (isSelected) Color(0xFF6200EA) else if(MaterialTheme.colorScheme.isLight()) Color(0xFFF6FEFF) else Color(0xFF2A3439)
         ),
     ) {
         Column(
@@ -480,7 +479,7 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     )
                     .clip(CircleShape)
                     .align(Alignment.CenterHorizontally)
-                    .background(Color(0xFFFDFDFD))
+                    .background(if(MaterialTheme.colorScheme.isLight()) Color(0xFFFDFDFD) else Color(0xFF2E2E2E))
             ) {
                 Text(
                     text = date,
@@ -490,7 +489,7 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     ),
-                    // color = if (isSelected) Color.White else Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -510,14 +509,11 @@ fun DateBar(day: String, date: String, isSelected: Boolean, onClick: () -> Unit)
     }
 }
 
-
-
 @Preview(showBackground = true, showSystemUi = true, device = "spec:width=411dp,height=891dp")
 @Composable
 fun HomeScreenPreview() {
     NavScreen()
 }
-
 
 @Composable
 fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavController, selectedDate: LocalDate) {
@@ -535,6 +531,8 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
         )
     }
 
+    val cardBackground = if(MaterialTheme.colorScheme.isLight()) Color.White else Color(0xFF2E2E2E)
+
     Card(
         shape = RoundedCornerShape(26.dp),
         modifier = Modifier
@@ -550,7 +548,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
             .height(260.dp)
             .padding(horizontal = 8.dp)
             .shadow(12.dp, RoundedCornerShape(26.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = cardBackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -560,7 +558,10 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                     .clip(RoundedCornerShape(26.dp))
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color(0xFFDFF5EC), Color.Transparent)
+                            colors = if(MaterialTheme.colorScheme.isLight())
+                                listOf(Color(0xFFDFF5EC), Color.Transparent)
+                            else
+                                listOf(Color(0xFF2A3439), Color.Transparent)
                         )
                     )
             )
@@ -605,7 +606,7 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp,
-                    color = Color(0xFF1B1B1F),
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
                 )
 

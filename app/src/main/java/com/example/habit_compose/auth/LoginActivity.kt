@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.example.habit_compose.R
 import com.example.habit_compose.home.MainActivity
 import com.example.habit_compose.ui.theme.CustomTextField
-import com.example.habit_compose.ui.theme.HabitTrackerTheme
+import com.example.habit_compose.ui.theme.AppTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -37,7 +37,7 @@ class LoginActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            HabitTrackerTheme  {
+            AppTheme  {
                 LoginScreen(activity = this)
             }
         }

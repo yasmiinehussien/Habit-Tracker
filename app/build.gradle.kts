@@ -81,7 +81,6 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.2.0")
     implementation("androidx.compose.foundation:foundation:1.4.0")
     implementation("androidx.compose.foundation:foundation:1.5.1")
-    implementation("io.coil-kt:coil-compose:2.1.0")
     implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("com.exyte:animated-navigation-bar:1.0.0")
@@ -104,5 +103,12 @@ dependencies {
 
 // Gson for JSON parsing
     implementation ("com.google.code.gson:gson:2.10.1")
+
+    // اعتمادات DataStore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences-core:1.0.0")
+
+    // تأكد من تحديث Coil إلى أحدث إصدار
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
 }

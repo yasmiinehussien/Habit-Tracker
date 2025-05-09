@@ -12,7 +12,7 @@ import com.example.habit_compose.R
 import com.example.habit_compose.auth.LoginActivity
 import com.example.habit_compose.auth.SignUpActivity
 import com.example.habit_compose.home.MainActivity
-import com.example.habit_compose.ui.theme.HabitTrackerTheme
+import com.example.habit_compose.ui.theme.AppTheme
 import com.example.habit_compose.ui.theme.WelcomeScreen
 
 import com.google.android.gms.auth.api.signin.*
@@ -94,7 +94,7 @@ class WelcomeScreenActivity : ComponentActivity() {
 
         // Set content for the Welcome Screen
         setContent {
-            HabitTrackerTheme {
+            AppTheme {
                 WelcomeScreen(
                     onSignUpClick = {
                         startActivity(Intent(this, SignUpActivity::class.java))  // Navigate to SignUpActivity

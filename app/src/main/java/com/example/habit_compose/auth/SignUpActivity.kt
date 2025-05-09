@@ -33,7 +33,7 @@ import com.google.firebase.auth.*
 
 import androidx.activity.result.ActivityResultLauncher
 import com.example.habit_compose.R
-import com.example.habit_compose.ui.theme.HabitTrackerTheme
+import com.example.habit_compose.ui.theme.AppTheme
 import com.google.firebase.firestore.FirebaseFirestore
 
 
@@ -91,7 +91,7 @@ class SignUpActivity : ComponentActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
         setContent {
-            HabitTrackerTheme {
+            AppTheme {
                 SignUpScreen(this, auth, googleSignInClient, googleSignInLauncher)
             }
         }
