@@ -2,6 +2,7 @@ package com.example.habit_compose.habits
 
 import androidx.room.*
 import com.example.habit_compose.statiistics.DailyAvgProgress
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface HabitProgressDao {
@@ -38,5 +39,6 @@ interface HabitProgressDao {
         ORDER BY hp.date ASC
     """)
     suspend fun getAllAverageProgress(): List<DailyAvgProgress>
+
 }
 

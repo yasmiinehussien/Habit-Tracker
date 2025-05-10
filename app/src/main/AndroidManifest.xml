@@ -11,8 +11,9 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.Habit_compose"
-        tools:targetApi="31">
+        tools:targetApi="33">
         <!--  Firebase default notification channel  -->
         <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="default_channel_id"/>
         <receiver android:name=".notification.ReminderReceiver"/>
