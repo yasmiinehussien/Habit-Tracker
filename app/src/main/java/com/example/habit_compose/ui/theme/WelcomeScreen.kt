@@ -1,4 +1,4 @@
-package com.example.habit_compose.ui.theme
+package com.example.habit_compose.welcome
 
 
 import androidx.compose.foundation.Image
@@ -86,14 +86,14 @@ fun WelcomeScreen(
                         tint = Color.White
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Sign up with Google", color = Color.White)
+                    Text("Continue with Google", color = Color.White)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Already have an account? ",
+                text = "Have an account? ",
                 fontSize = 18.sp,
                 color = Color.Black
             )

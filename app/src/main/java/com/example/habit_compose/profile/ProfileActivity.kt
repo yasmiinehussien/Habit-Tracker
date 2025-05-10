@@ -31,6 +31,7 @@ import com.example.habit_compose.R
 import com.example.habit_compose.home.getUsername
 import com.example.habit_compose.ui.theme.AppTheme
 import com.example.habit_compose.welcome.WelcomeScreenActivity
+
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth

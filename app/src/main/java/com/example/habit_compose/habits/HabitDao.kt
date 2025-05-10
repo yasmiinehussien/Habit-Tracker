@@ -15,7 +15,6 @@ interface HabitDao {
     suspend fun getHabitById(id: Int): Habit
 
 
-
     @Query("SELECT * FROM habits WHERE ',' || daysSelected || ',' LIKE '%,' || :selectedDay || ',%'")
     suspend fun getHabitsBySelectedDay(selectedDay: String): List<Habit>
 
@@ -31,6 +30,7 @@ interface HabitDao {
 
     @Query("SELECT * FROM habits WHERE isRegularHabit = 0 AND date(taskDate) = :selectedDate")
     suspend fun getOneTimeTasksByDate(selectedDate: String): List<Habit>
+
     @Query("UPDATE habits SET completedCount = :count WHERE id = :habitId")
     suspend fun updateCompletedCount(habitId: Int, count: Int)
 
@@ -39,6 +39,9 @@ interface HabitDao {
 
     @Query("DELETE FROM habit_progress WHERE habitId = :habitId")
     suspend fun deleteHabitProgressByHabitId(habitId: Int)
+
+
+
 
     @Transaction
     suspend fun deleteHabitCompletely(habitId: Int) {

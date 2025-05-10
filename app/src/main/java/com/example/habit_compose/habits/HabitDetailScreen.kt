@@ -54,15 +54,13 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
     val isFuture = selected.isAfter(today)
 
     var showDialog by remember { mutableStateOf(false) }
-    val auth:FirebaseAuth
-    val habitRepository= remember { FirestoreRepository() }
+
     val db = remember { AppDatabase.getDatabase(context) }
     var habit by remember { mutableStateOf<Habit?>(null) }
     val scope = rememberCoroutineScope()
     var completedCount by remember { mutableStateOf(0) }
     var showDoneAnimation by remember { mutableStateOf(false) }
 
-    var habitState by remember { mutableStateOf<List<HabitModel>>(emptyList()) }
 
     LaunchedEffect(habitId, selectedDate) {
 
@@ -362,38 +360,10 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                             TextButton(onClick = {
                                 showDialog = false
                                 scope.launch(Dispatchers.IO) {
-                                    try {
-
-                                        val auth=FirebaseAuth.getInstance()
-                                        val localHabit = db.habitDao().getHabitById(habitId)
-                                        if (localHabit != null) {
-                                            db.habitDao().deleteHabitCompletely(habitId)
-                                            if (auth.currentUser != null && localHabit.documentId != null) {
-                                                habitRepository.deleteHabit(localHabit.documentId)
-                                                Log.d("Delete", "Deleted from Firestore: ${localHabit.documentId}")
-                                            } else {
-                                                Log.w("Delete", "Habit has no Firestore ID")
-                                            }
-                                        }
-
-
-                                        withContext(Dispatchers.Main) {
-                                            Toast.makeText(context, "Habit deleted", Toast.LENGTH_SHORT).show()
-                                            navController.previousBackStackEntry?.savedStateHandle?.set(
-                                                "deleted_habit_id",
-                                                habitId
-                                            )
-                                            navController.popBackStack()
-
-                                        }
-                                    } catch (e: Exception) {
-
-                                        Log.e("Delete Habit", "Error during deletion: ${e.message}")
-                                        withContext(Dispatchers.Main) {
-                                            Toast.makeText(context, "Failed to delete habit", Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
+                                    db.habitDao().deleteHabitCompletely(habitId)
                                 }
+                                Toast.makeText(context, "Habit deleted", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack()
                             }) {
                                 Text("Delete", color = Color.Red)
                             }

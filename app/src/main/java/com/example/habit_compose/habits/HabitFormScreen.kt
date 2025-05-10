@@ -43,7 +43,7 @@ import java.util.Calendar
 @Composable
 fun HabitFormScreen(navController: NavController, categoryTag: String)
 {
-    val firestoreRepository= remember { FirestoreRepository() }
+
     val auth =FirebaseAuth.getInstance()
 
     val GreenPrimary = Color(0xFF7A49D5)
@@ -126,28 +126,6 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                                 } else null
 
 
-
-                                // Create the habit model
-                                val habit = HabitModel(
-                                    id = "", // Firestore will generate this
-                                    name = name.trim(),
-                                    repeatFrequency = repeatFrequency,
-                                    daysSelected = daysSelected.joinToString(","),
-                                    endDate = endDate,
-                                    endHabitOn = endHabitOn,
-                                    setReminder = setReminder,
-                                    howOftenPerDay = howOftenPerDay,
-                                    isRegularHabit = isRegularHabit,
-                                    categoryTag = categoryTag,
-                                    reminderTime = reminderTime,
-                                    taskDate = calculatedTaskDate,
-                                    createdDate = LocalDate.now().toString(),
-                                    userId = userId
-                                )
-                                // save to firestore DB
-                                CoroutineScope(Dispatchers.IO).launch { firestoreRepository.saveHabit(habit) }
-
-                                //save to room DB
                                 CoroutineScope(Dispatchers.IO).launch {
                                     db.habitDao().insertHabit(
                                         Habit(
@@ -161,11 +139,15 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                                             categoryTag = categoryTag,
                                             howOftenPerDay = howOftenPerDay,
                                             reminderTime = reminderTime,
-                                            taskDate = calculatedTaskDate,
-                                            createdDate = LocalDate.now()
-                                                .toString(),// ✅ Important fix
-                                            userId = userId,
-
+                                            taskDate = if (!isRegularHabit && daysSelected.size == 1) {
+                                                val selectedDayIndex = daysSelected.first().toInt()
+                                                val today = LocalDate.now()
+                                                val todayIndex = today.dayOfWeek.value % 7
+                                                val daysUntil = (selectedDayIndex - todayIndex + 7) % 7
+                                                val realDate = today.plusDays(daysUntil.toLong())
+                                                realDate.toString()
+                                            } else null,
+                                            createdDate = LocalDate.now().toString() // ✅ Important fix
                                         )
                                     )
 

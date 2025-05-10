@@ -12,8 +12,8 @@ import com.example.habit_compose.R
 import com.example.habit_compose.auth.LoginActivity
 import com.example.habit_compose.auth.SignUpActivity
 import com.example.habit_compose.home.MainActivity
-import com.example.habit_compose.ui.theme.AppTheme
-import com.example.habit_compose.ui.theme.WelcomeScreen
+import com.example.habit_compose.ui.theme.HabitComposeTheme
+import com.example.habit_compose.ui.theme.HabitComposeTheme
 
 import com.google.android.gms.auth.api.signin.*
 import com.google.android.gms.common.api.ApiException
@@ -58,14 +58,14 @@ class WelcomeScreenActivity : ComponentActivity() {
 
         val currentUser = FirebaseAuth.getInstance().currentUser
 
-/*
-        if (currentUser != null) {
+        /*
+                if (currentUser != null) {
 
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
-*/
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+        */
 
 
         // Initialize FirebaseAuth
@@ -94,7 +94,7 @@ class WelcomeScreenActivity : ComponentActivity() {
 
         // Set content for the Welcome Screen
         setContent {
-            AppTheme {
+            HabitComposeTheme  {
                 WelcomeScreen(
                     onSignUpClick = {
                         startActivity(Intent(this, SignUpActivity::class.java))  // Navigate to SignUpActivity
