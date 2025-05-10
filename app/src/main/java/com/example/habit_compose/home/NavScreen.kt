@@ -144,19 +144,20 @@ fun NavScreen(modifier: Modifier = Modifier) {
                 composable(
                     "habit_details/{habitId}/{selectedDate}",
                     arguments = listOf(
-                        navArgument("habitId") { type = NavType.IntType },
+                        navArgument("habitId") { type = NavType.StringType }, // ✅ Fix here
                         navArgument("selectedDate") { type = NavType.StringType }
                     )
                 ) {
-                    val habitId = it.arguments?.getInt("habitId") ?: 0
-                    val selectedDate =
-                        it.arguments?.getString("selectedDate") ?: LocalDate.now().toString()
+                    val habitId = it.arguments?.getString("habitId") ?: ""
+                    val selectedDate = it.arguments?.getString("selectedDate") ?: LocalDate.now().toString()
+
                     HabitDetailsScreen(
-                        habitId = habitId,
+                        habitId = habitId, // ✅ Already String
                         selectedDate = selectedDate,
                         navController = navController
                     )
                 }
+
 
                 // Add the new route for quotes screen
                 composable("quotes") {

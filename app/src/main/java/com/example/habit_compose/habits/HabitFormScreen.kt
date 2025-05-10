@@ -37,6 +37,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.Calendar
 
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -92,11 +95,14 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
                         CoroutineScope(Dispatchers.IO).launch {
                             val userId = auth.currentUser?.uid ?: throw Exception("User not logged in")
                             // check in local Room DB for name
-                            val existingNames = if (isRegularHabit) {
-                                db.habitDao().getAllRegularHabits().map { it.name.trim().lowercase() }
-                            } else {
-                                db.habitDao().getAllOneTimeTasks().map { it.name.trim().lowercase() }
+                            val existingNames = withContext(Dispatchers.IO) {
+                                if (isRegularHabit) {
+                                    db.habitDao().getAllRegularHabits().map { it.name.trim().lowercase() }
+                                } else {
+                                    db.habitDao().getAllOneTimeTasks().map { it.name.trim().lowercase() }
+                                }
                             }
+
 
                             withContext(Dispatchers.Main) {
                                 if (name.trim().isEmpty()) {
@@ -127,29 +133,38 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
 
 
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    db.habitDao().insertHabit(
-                                        Habit(
-                                            name = name.trim(),
-                                            repeatFrequency = repeatFrequency,
-                                            daysSelected = daysSelected.joinToString(","),
-                                            endDate = endDate,
-                                            endHabitOn = endHabitOn,
-                                            setReminder = setReminder,
-                                            isRegularHabit = isRegularHabit,
-                                            categoryTag = categoryTag,
-                                            howOftenPerDay = howOftenPerDay,
-                                            reminderTime = reminderTime,
-                                            taskDate = if (!isRegularHabit && daysSelected.size == 1) {
-                                                val selectedDayIndex = daysSelected.first().toInt()
-                                                val today = LocalDate.now()
-                                                val todayIndex = today.dayOfWeek.value % 7
-                                                val daysUntil = (selectedDayIndex - todayIndex + 7) % 7
-                                                val realDate = today.plusDays(daysUntil.toLong())
-                                                realDate.toString()
-                                            } else null,
-                                            createdDate = LocalDate.now().toString() // ✅ Important fix
-                                        )
+                                    val habitId = Firebase.firestore.collection("habits").document().id
+                                    val userId = auth.currentUser?.uid ?: return@launch
+
+                                    val newHabit = Habit(
+                                        id = habitId,
+                                        userId = userId,
+                                        name = name.trim(),
+                                        repeatFrequency = repeatFrequency,
+                                        daysSelected = daysSelected.joinToString(","),
+                                        endDate = endDate,
+                                        endHabitOn = endHabitOn,
+                                        setReminder = setReminder,
+                                        isRegularHabit = isRegularHabit,
+                                        categoryTag = categoryTag,
+                                        howOftenPerDay = howOftenPerDay,
+                                        reminderTime = reminderTime,
+                                        taskDate = calculatedTaskDate,
+                                        createdDate = LocalDate.now().toString()
                                     )
+
+
+                                    Firebase.firestore.collection("habits").document(habitId).set(newHabit)
+                                        .addOnSuccessListener {
+                                            Toast.makeText(context, "Habit saved online!", Toast.LENGTH_SHORT).show()
+                                        }
+                                        .addOnFailureListener {
+                                            Toast.makeText(context, "Failed to save habit online!", Toast.LENGTH_SHORT).show()
+                                        }
+
+
+                                    db.habitDao().insertHabit(newHabit)
+
 
 
 

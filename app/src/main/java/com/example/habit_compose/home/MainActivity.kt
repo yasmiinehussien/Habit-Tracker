@@ -84,6 +84,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+
+
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -114,7 +119,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 fun mapDayOfWeekToIndex(day: java.time.DayOfWeek): Int {
     return when (day) {
         java.time.DayOfWeek.SUNDAY -> 0
@@ -206,51 +210,49 @@ fun HomeScreen(navController: NavController) {
     val deletedHabitId by navController
         .currentBackStackEntry
         ?.savedStateHandle
-        ?.getStateFlow<Int?>("deleted_habit_id", null)
+        ?.getStateFlow<String?>("deleted_habit_id", null)
         ?.collectAsState() ?: remember { mutableStateOf(null) }
 
-    LaunchedEffect(deletedHabitId) {
-        deletedHabitId?.let { id ->
-            savedHabits = savedHabits.filter { it.id != id }
-            navController.currentBackStackEntry?.savedStateHandle?.set("deleted_habit_id", null)
-        }
-    }
 
-    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Habits, 1 = Tasks
-    val scope = rememberCoroutineScope()
 
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
     val calenderData = remember { CalenderData() }
     val today = calenderData.today
-    val weekDates = calenderData.getWeekDates()
     val selectedDate = rememberSaveable { mutableStateOf(today) }
+    val scope = rememberCoroutineScope()
+
+    val weekDates = calenderData.getWeekDates()
 
     fun loadHabits(dateSelected: LocalDate) {
-        scope.launch(Dispatchers.IO) {
-            val habits = db.habitDao().getAllRegularHabits()
-            val selectedDayOfWeek = mapDayOfWeekToIndex(dateSelected.dayOfWeek).toString()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val selectedDayOfWeek = mapDayOfWeekToIndex(dateSelected.dayOfWeek).toString()
 
-            val filteredHabits = habits.filter { habit ->
-                val endsAfterOrEqual = habit.endDate.isNullOrEmpty() ||
-                        LocalDate.parse(habit.endDate).isAfter(dateSelected) ||
-                        LocalDate.parse(habit.endDate).isEqual(dateSelected)
+        Firebase.firestore.collection("habits")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { result ->
+                val allHabits = result.toObjects(Habit::class.java)
 
-                val startsBeforeOrEqual = LocalDate.parse(habit.createdDate).isBefore(dateSelected) ||
-                        LocalDate.parse(habit.createdDate).isEqual(dateSelected)
+                val filteredHabits = allHabits.filter { habit ->
+                    val endsAfterOrEqual = habit.endDate.isNullOrEmpty() ||
+                            LocalDate.parse(habit.endDate).isAfter(dateSelected) ||
+                            LocalDate.parse(habit.endDate).isEqual(dateSelected)
 
-                if (habit.repeatFrequency == "Daily") {
-                    endsAfterOrEqual && startsBeforeOrEqual
-                } else if (habit.repeatFrequency == "Weekly") {
-                    habit.daysSelected.split(",").contains(selectedDayOfWeek) &&
-                            endsAfterOrEqual && startsBeforeOrEqual
-                } else {
-                    false
+                    val startsBeforeOrEqual = LocalDate.parse(habit.createdDate).isBefore(dateSelected) ||
+                            LocalDate.parse(habit.createdDate).isEqual(dateSelected)
+
+                    if (habit.repeatFrequency == "Daily") {
+                        endsAfterOrEqual && startsBeforeOrEqual
+                    } else if (habit.repeatFrequency == "Weekly") {
+                        habit.daysSelected.split(",").contains(selectedDayOfWeek) &&
+                                endsAfterOrEqual && startsBeforeOrEqual
+                    } else {
+                        false
+                    }
                 }
-            }
 
-            withContext(Dispatchers.Main) {
                 savedHabits = filteredHabits
             }
-        }
     }
 
     fun loadTasks(dateSelected: LocalDate) {
@@ -266,6 +268,31 @@ fun HomeScreen(navController: NavController) {
             }
         }
     }
+    LaunchedEffect(navController.currentBackStackEntry?.savedStateHandle?.get<String?>("deleted_habit_id")) {
+        val deletedHabitId = navController
+            .currentBackStackEntry
+            ?.savedStateHandle
+            ?.get<String?>("deleted_habit_id")
+
+        if (deletedHabitId != null) {
+            if (selectedTab == 0) {
+                loadHabits(selectedDate.value)
+            } else {
+                loadTasks(selectedDate.value)
+            }
+
+            navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.set("deleted_habit_id", null)
+        }
+    }
+
+
+
+
+
+
+
 
     LaunchedEffect(selectedTab, selectedDate.value, savedHabits) {
         if (selectedTab == 0) {
@@ -294,45 +321,42 @@ fun HomeScreen(navController: NavController) {
                         selectedDate.value = date.date
 
                         scope.launch(Dispatchers.IO) {
-                            val allHabits = db.habitDao().getAllHabits()
+                            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
 
-                            val selectedDayOfWeek = mapDayOfWeekToIndex(date.date.dayOfWeek).toString()
-                            val selectedDateStr = date.date.toString()
+                            Firebase.firestore.collection("habits")
+                                .whereEqualTo("userId", userId)
+                                .get()
+                                .addOnSuccessListener { result ->
+                                    val allHabits = result.toObjects(Habit::class.java)
 
-                            val filtered = allHabits.filter { habit ->
-                                if (selectedTab == 0 && habit.isRegularHabit) {
-                                    // Habits tab: check repeat type
-                                    //val selectedDateStr = date.date.toString()
+                                    val filtered = allHabits.filter { habit ->
+                                        val selectedDayOfWeek = mapDayOfWeekToIndex(date.date.dayOfWeek).toString()
+                                        val selectedDateStr = date.date.toString()
 
-                                    val endsAfterOrEqual = habit.endDate.isNullOrEmpty() ||
-                                            LocalDate.parse(habit.endDate).isAfter(date.date) ||
-                                            LocalDate.parse(habit.endDate).isEqual(date.date)
+                                        if (selectedTab == 0 && habit.isRegularHabit) {
+                                            val endsAfterOrEqual = habit.endDate.isNullOrEmpty() ||
+                                                    LocalDate.parse(habit.endDate).isAfter(date.date) ||
+                                                    LocalDate.parse(habit.endDate).isEqual(date.date)
 
-                                    val startsBeforeOrEqual =
-                                        LocalDate.parse(habit.createdDate).isBefore(date.date) ||
-                                                LocalDate.parse(habit.createdDate).isEqual(date.date)
+                                            val startsBeforeOrEqual = LocalDate.parse(habit.createdDate).isBefore(date.date) ||
+                                                    LocalDate.parse(habit.createdDate).isEqual(date.date)
 
-                                    if (habit.repeatFrequency == "Daily") {
-                                        endsAfterOrEqual && startsBeforeOrEqual
-                                    } else if (habit.repeatFrequency == "Weekly") {
-                                        habit.daysSelected.split(",").contains(selectedDayOfWeek) &&
+                                            if (habit.repeatFrequency == "Daily") {
                                                 endsAfterOrEqual && startsBeforeOrEqual
-                                    } else {
-                                        false // avoid accidentally including incorrect frequency
+                                            } else if (habit.repeatFrequency == "Weekly") {
+                                                habit.daysSelected.split(",").contains(selectedDayOfWeek) &&
+                                                        endsAfterOrEqual && startsBeforeOrEqual
+                                            } else false
+                                        } else if (selectedTab == 1 && !habit.isRegularHabit) {
+                                            habit.taskDate == selectedDateStr
+                                        } else false
                                     }
-                                } else if (selectedTab == 1 && !habit.isRegularHabit) {
-                                    habit.taskDate == selectedDateStr
-                                    // Tasks tab: show tasks only for exact taskDate
-                                } else {
-                                    false
-                                }
-                            }
 
-                            withContext(Dispatchers.Main) {
-                                savedHabits = filtered
-                            }
+                                    savedHabits = filtered
+                                }
                         }
                     }
+
                 )
             }
         }
@@ -602,8 +626,8 @@ fun HabitCardFromDb(habit: Habit, category: HabitCategory?, navController: NavCo
                     color = category?.tagColor?.copy(alpha = 0.15f) ?: Color.LightGray,
                     shadowElevation = 0.dp,
                     modifier = Modifier
-                        .height(34.dp) // ✅ Less height
-                        .widthIn(min = 140.dp) // ✅ Wider button
+                        .height(34.dp)
+                        .widthIn(min = 140.dp)
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,

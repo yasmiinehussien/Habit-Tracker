@@ -45,7 +45,7 @@ import java.time.format.DateTimeFormatter
 
 
 @Composable
-fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavController) {
+fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: NavController) {
     val today = LocalDate.now()
     val selected = LocalDate.parse(selectedDate)
     val context = LocalContext.current
@@ -66,8 +66,8 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
 
         scope.launch(Dispatchers.IO) {
             val foundHabit = db.habitDao().getAllHabits().find { it.id == habitId }
-            val habitProgress =
-                db.habitProgressDao().getProgressForDate(habitId, selectedDate) // تعديل هنا
+            val habitProgress = db.habitProgressDao().getProgressForDate(habitId, selectedDate)
+
 
             withContext(Dispatchers.Main) {
                 habit = foundHabit
@@ -360,10 +360,31 @@ fun HabitDetailsScreen(habitId: Int, selectedDate: String, navController: NavCon
                             TextButton(onClick = {
                                 showDialog = false
                                 scope.launch(Dispatchers.IO) {
+                                    // Delete from Room DB
                                     db.habitDao().deleteHabitCompletely(habitId)
+                                    db.habitProgressDao().deleteAllProgressForHabit(habitId) // optional if needed
+
+
+                                    // Delete from Firestore
+                                    FirebaseFirestore.getInstance()
+                                        .collection("habits")
+                                        .document(habitId)
+                                        .delete()
+                                        .addOnSuccessListener {
+                                            Log.d("Delete", "Habit deleted from Firestore")
+                                        }
+                                        .addOnFailureListener {
+                                            Log.e("Delete", "Error deleting habit from Firestore", it)
+                                        }
                                 }
+
                                 Toast.makeText(context, "Habit deleted", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
+                                navController.navigate("tabs") {
+                                    popUpTo("tabs") { inclusive = true }
+                                }
+
+                                navController.currentBackStackEntry?.savedStateHandle?.set("deleted_habit_id", habitId)
+
                             }) {
                                 Text("Delete", color = Color.Red)
                             }

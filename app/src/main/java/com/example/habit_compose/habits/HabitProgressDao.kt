@@ -11,10 +11,11 @@ interface HabitProgressDao {
     suspend fun insertOrUpdateProgress(progress: HabitProgress)
 
     @Query("SELECT * FROM habit_progress WHERE habitId = :habitId AND date = :date")
-    suspend fun getProgressForDate(habitId: Int, date: String): HabitProgress?
+    suspend fun getProgressForDate(habitId: String, date: String): HabitProgress?
 
     @Query("DELETE FROM habit_progress WHERE habitId = :habitId")
-    suspend fun deleteAllProgressForHabit(habitId: Int)
+    suspend fun deleteAllProgressForHabit(habitId: String)
+
 
     @Query("""
         SELECT 

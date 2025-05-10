@@ -1,6 +1,5 @@
 package com.example.habit_compose.habits
 
-
 import androidx.room.*
 
 @Dao
@@ -12,12 +11,10 @@ interface HabitDao {
     suspend fun getAllHabits(): List<Habit>
 
     @Query("SELECT * FROM habits WHERE id = :id")
-    suspend fun getHabitById(id: Int): Habit
-
+    suspend fun getHabitById(id: String): Habit
 
     @Query("SELECT * FROM habits WHERE ',' || daysSelected || ',' LIKE '%,' || :selectedDay || ',%'")
     suspend fun getHabitsBySelectedDay(selectedDay: String): List<Habit>
-
 
     @Query("SELECT * FROM habits WHERE isRegularHabit = 1")
     suspend fun getAllRegularHabits(): List<Habit>
@@ -32,22 +29,17 @@ interface HabitDao {
     suspend fun getOneTimeTasksByDate(selectedDate: String): List<Habit>
 
     @Query("UPDATE habits SET completedCount = :count WHERE id = :habitId")
-    suspend fun updateCompletedCount(habitId: Int, count: Int)
+    suspend fun updateCompletedCount(habitId: String, count: Int)
 
     @Query("DELETE FROM habits WHERE id = :habitId")
-    suspend fun deleteHabitById(habitId: Int)
+    suspend fun deleteHabitById(habitId: String)
 
     @Query("DELETE FROM habit_progress WHERE habitId = :habitId")
-    suspend fun deleteHabitProgressByHabitId(habitId: Int)
-
-
-
+    suspend fun deleteHabitProgressByHabitId(habitId: String)
 
     @Transaction
-    suspend fun deleteHabitCompletely(habitId: Int) {
+    suspend fun deleteHabitCompletely(habitId: String) {
         deleteHabitProgressByHabitId(habitId)
         deleteHabitById(habitId)
     }
-
-
 }

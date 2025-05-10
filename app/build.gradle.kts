@@ -6,7 +6,11 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.compose)
 }
 
+
+
 android {
+
+
     namespace = "com.example.habit_compose"
     compileSdk = 35
 
@@ -58,6 +62,8 @@ android {
 }
 
 dependencies {
+    implementation("androidx.core:core:1.12.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -78,17 +84,27 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation("com.google.accompanist:accompanist-flowlayout:0.30.1")
-    implementation("androidx.compose.material3:material3:1.2.0")
-    implementation("androidx.compose.foundation:foundation:1.4.0")
+//    implementation("androidx.compose.material3:material3:1.2.0")
+//    implementation("androidx.compose.foundation:foundation:1.4.0")
     implementation("androidx.compose.foundation:foundation:1.5.1")
     implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("com.exyte:animated-navigation-bar:1.0.0")
     implementation(libs.androidx.compose.animation)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
     implementation("androidx.room:room-runtime:2.7.0-alpha01")
     implementation("androidx.room:room-ktx:2.7.0-alpha01")
     kapt("androidx.room:room-compiler:2.7.0-alpha01")
+
+
+//    implementation("androidx.room:room-runtime:2.6.1")
+//    implementation("androidx.room:room-ktx:2.6.1")
+//    kapt("androidx.room:room-compiler:2.6.1")
+//
+
+
+
     implementation("com.google.firebase:firebase-auth")
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.android.gms:play-services-auth:21.2.0")
@@ -111,4 +127,8 @@ dependencies {
     // تأكد من تحديث Coil إلى أحدث إصدار
     implementation("io.coil-kt.coil3:coil-compose:3.1.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
+
+
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
 }

@@ -4,7 +4,7 @@ import androidx.room.Entity
 
 @Entity(tableName = "habit_progress", primaryKeys = ["habitId", "date"])
 data class HabitProgress(
-    val habitId: Int,
+    val habitId: String,
     val date: String, // yyyy-MM-dd
     val completedCount: Int
 )
