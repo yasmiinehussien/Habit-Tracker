@@ -31,7 +31,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.habit_compose.habits.HabitProgressDao
+import com.example.habit_compose.habits.MonthlyAvgProgress
+import com.example.habit_compose.habits.WeeklyAvgProgress
 import com.exyte.animatednavbar.utils.toDp
 import com.exyte.animatednavbar.utils.toPxf
 import java.time.LocalDate
@@ -57,12 +64,17 @@ fun HabitTrackerStatsScreen(
 
     val selectedTabIndex = remember { mutableStateOf(0) }
     val dailyAverages by viewModel.dailyAverages.collectAsState()
+    val weeklyAverages by viewModel.weeklyAverages.collectAsState()
+    val monthlyAverages by viewModel.monthlyAverages.collectAsState()
+
 
     LaunchedEffect(Unit) {
         viewModel.loadDailyAverages()
+        viewModel.loadWeeklyAverages()
+        viewModel.loadMonthlyAverages()
     }
 
-   // val selectedTabIndex = remember { mutableStateOf(0) }
+    // val selectedTabIndex = remember { mutableStateOf(0) }
     //val dailyAverages by viewModel.dailyAverages.collectAsState()
 
     Scaffold(
@@ -75,301 +87,130 @@ fun HabitTrackerStatsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Title Section
-            TitleSection()
-
-            // Highlights Section
-            HighlightsSection()
-
-            // Badges Section
-            BadgesSection()
-
+            StatAnimation()
+            Spacer(modifier = Modifier.weight(1f))
             // Chart Section
             ChartSection(
                 selectedTabIndex = selectedTabIndex.value,
                 onTabSelected = { selectedTabIndex.value = it },
-                dailyAverages = dailyAverages
+                dailyAverages = dailyAverages,
+                weeklyAverages = weeklyAverages,
+                monthlyAverages = monthlyAverages
             )
         }
     }
 }
 
-
 @Composable
-fun TitleSection() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(
-            text = "Statistics",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = TextPrimaryColor
-            )
-        )
-        Text(
-            text = "Track your habit stats",
-            style = MaterialTheme.typography.bodyLarge.copy(
-                color = TextSecondaryColor
-            )
-        )
-    }
-}
+fun StatAnimation() {
+    val composition by rememberLottieComposition(LottieCompositionSpec.Asset("stat-animation.json"))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever
+    )
 
-@Composable
-fun HighlightsSection() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            HighlightCard(
-                modifier = Modifier.weight(1f),
-                title = "3 Days",
-                subtitle = "Current streak",
-                icon = Icons.Outlined.LocalFireDepartment
-            )
-
-            HighlightCard(
-                modifier = Modifier.weight(1f),
-                title = "7 Days",
-                subtitle = "Longest streak",
-                icon = Icons.Outlined.Rocket
-            )
-        }
-
-//        Row(
-//            modifier = Modifier.fillMaxWidth(),
-//            horizontalArrangement = Arrangement.spacedBy(16.dp)
-//        ) {
-//            HighlightCard(
-//                modifier = Modifier.weight(1f),
-//                title = "April",
-//                subtitle = "Best Month",
-//                icon = Icons.Outlined.CalendarMonth
-//            )
-//
-//            HighlightCard(
-//                modifier = Modifier.weight(1f),
-//                title = "Running",
-//                subtitle = "Focus on",
-//                icon = Icons.Outlined.DirectionsRun
-//            )
-//        }
-   }
-}
-
-@Composable
-fun HighlightCard(
-    modifier: Modifier = Modifier,
-    title: String,
-    subtitle: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector
-) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = PrimaryColor.copy(alpha = 0.1f)
-        ),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 0.dp
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = PrimaryColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(PrimaryColor)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryColor
-                    )
-                )
-
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = TextSecondaryColor
-                    )
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun BadgesSection() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            text = "Badges",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = TextPrimaryColor
-            )
-        )
-
-        val badges = listOf(
-            Badge("7 Days", "Completed", true),
-            Badge("14 Days", "Completed", false),
-            Badge("21 Days", "Completed", false),
-            Badge("28 Days", "Completed", false),
-            Badge("35 Days", "Completed", false)
-        )
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(badges) { badge ->
-                BadgeItem(badge)
-            }
-        }
-    }
-}
-
-data class Badge(val days: String, val label: String, val isUnlocked: Boolean)
-
-@Composable
-fun BadgeItem(badge: Badge) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(60.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .background(
-                    if (badge.isUnlocked) PrimaryColor
-                    else PrimaryColor.copy(alpha = 0.1f)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = if (badge.isUnlocked) Icons.Filled.CheckCircle else Icons.Filled.Lock,
-                contentDescription = if (badge.isUnlocked) "Unlocked Badge" else "Locked Badge",
-                tint = if (badge.isUnlocked) Color.White else PrimaryColor.copy(alpha = 0.5f),
-                modifier = Modifier.size(28.dp)
-            )
-        }
-
-        Text(
-            text = badge.days,
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontWeight = FontWeight.Bold,
-                color = if (badge.isUnlocked) TextPrimaryColor else TextSecondaryColor.copy(alpha = 0.5f)
-            ),
-            textAlign = TextAlign.Center
-        )
-
-        Text(
-            text = badge.label,
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = if (badge.isUnlocked) TextSecondaryColor else TextSecondaryColor.copy(alpha = 0.5f)
-            ),
-            textAlign = TextAlign.Center
-        )
-    }
+    LottieAnimation(
+        composition = composition,
+        progress = { progress },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+    )
 }
 
 
 @Composable
 fun ChartSection(
-    selectedTabIndex: Int,  // إضافة selectedTabIndex
-    onTabSelected: (Int) -> Unit,  // إضافة onTabSelected
-    dailyAverages: List<DailyAvgProgress>, // بيانات التقدم اليومية
+    selectedTabIndex: Int,
+    onTabSelected: (Int) -> Unit,
+    dailyAverages: List<DailyAvgProgress>,
+    weeklyAverages: List<WeeklyAvgProgress>,
+    monthlyAverages: List<MonthlyAvgProgress>,
     modifier: Modifier = Modifier
 ) {
-    val dayLabels = if (dailyAverages.isEmpty()) List(7) { "" } else {
-        dailyAverages.map {
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-            val date = LocalDate.parse(it.date, formatter)
-            date.dayOfWeek.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }
+
+
+    val dayLabels = when (selectedTabIndex) {
+        0 -> if (dailyAverages.isEmpty()) List(7) { "" } else {
+            dailyAverages.map {
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val date = LocalDate.parse(it.date, formatter)
+                date.dayOfWeek.name.take(3).lowercase().replaceFirstChar { it.uppercaseChar() }
+            }
         }
+        1 -> if (weeklyAverages.isEmpty()) List(4) { "" } else {
+            weeklyAverages.map { "Week ${it.weekNumber}" }
+        }
+        2 -> if (monthlyAverages.isEmpty()) List(12) { "" } else {
+            monthlyAverages.map { it.month.toString() }
+        }
+        else -> List(7) { "" }
     }
 
-    val percentages = if (dailyAverages.isEmpty()) List(7) { 0f } else {
-        dailyAverages.map {
-            (it.avgProgress.toFloat() / 100f).coerceIn(0f, 1f)
+    val percentages = when (selectedTabIndex) {
+        0 -> if (dailyAverages.isEmpty()) List(7) { 0f } else {
+            dailyAverages.map {
+                (it.avgProgress.toFloat() / 100f).coerceIn(0f, 1f)
+            }
         }
+        1 -> if (weeklyAverages.isEmpty()) List(4) { 0f } else {
+            weeklyAverages.map { (it.avgProgress.toFloat() / 100f).coerceIn(0f, 1f) }
+        }
+        2 -> if (monthlyAverages.isEmpty()) List(12) { 0f } else {
+            monthlyAverages.map { (it.avgProgress.toFloat() / 100f).coerceIn(0f, 1f) }
+        }
+        else -> List(7) { 0f }
     }
 
-    // استخدام Dp مباشرة في قياسات الأعمدة والمسافة بينها
-    val barWidth = 40.dp  // استخدام Dp مباشرة
-    val padding = 16.dp  // استخدام Dp مباشرة
+    Column(
+        modifier = modifier
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Tabs
+        TabRow(
+            selectedTabIndex = selectedTabIndex,
+            containerColor = Color.Transparent,
+            contentColor = PrimaryColor,
+            indicator = { tabPositions ->
+                Box(
+                    modifier = Modifier
+                        .tabIndicatorOffset(tabPositions[selectedTabIndex])
+                        .height(3.dp)
+                        .background(
+                            color = PrimaryColor,
+                            shape = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)
+                        )
+                )
+            },
+            divider = {}
+        ) {
+            Tab(
+                selected = selectedTabIndex == 0,
+                onClick = { onTabSelected(0) },
+                text = { Text("Daily") }
+            )
+            Tab(
+                selected = selectedTabIndex == 1,
+                onClick = { onTabSelected(1) },
+                text = { Text("Weekly") }
+            )
+            Tab(
+                selected = selectedTabIndex == 2,
+                onClick = { onTabSelected(2) },
+                text = { Text("Monthly") }
+            )
+        }
 
-    Column(modifier = modifier) {
-        // رسم الأعمدة (BarChart)
+        // Bar Chart
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                percentages.forEachIndexed { index, percentage ->
-                    val xPosition = index * (barWidth + padding).toPx() // هنا استخدمنا toPx لتحويل Dp إلى Px فقط في مكان الرسم
-                    val barHeight = size.height * percentage
+                .height(220.dp)
+                .padding(top = 8.dp)
 
-                    drawRect(
-                        color = PrimaryColor,
-                        topLeft = Offset(x = xPosition, y = size.height - barHeight),
-                        size = Size(barWidth.toPx(), barHeight)  // هنا أيضا يتم التحويل فقط عند الحاجة
-                    )
-                }
-            }
-        }
-
-        // عرض الأيام تحت الأعمدة
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 40.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            dayLabels.forEachIndexed { index, day ->
-                Text(
-                    text = day,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = if (index == dayLabels.lastIndex) PrimaryColor else TextSecondaryColor
-                    ),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.width(40.dp)
-                )
-            }
+            BarChart(percentages = percentages, dayLabels = dayLabels)
         }
     }
 }
@@ -382,23 +223,25 @@ fun BarChart(
     dayLabels: List<String>
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 16.dp),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
+        // الرسم البياني
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp),
             verticalAlignment = Alignment.Bottom
         ) {
-            // عمود النسب
+            // Y-axis labels
             Column(
                 modifier = Modifier
                     .width(40.dp)
                     .fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // عرض النسب من 100% إلى 0%
                 for (label in listOf("100%", "80%", "60%", "40%", "20%", "0%")) {
                     Text(
                         text = label,
@@ -409,39 +252,26 @@ fun BarChart(
                 }
             }
 
+            // Bars (with left padding to align better under Y-axis)
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
+                    .padding(start = 8.dp) // ✅ تحريك الأعمدة شِمال
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val barWidth =
-                        (size.width - (percentages.size - 1) * 16.dp.toPx()) / percentages.size
+                    val barSpacing = 16.dp.toPx()
+                    val barWidth = (size.width - (percentages.size - 1) * barSpacing) / percentages.size
                     val stepSize = size.height / 5
 
-                    val labelPaint = android.graphics.Paint().apply {
-                        color = android.graphics.Color.GRAY
-                        textSize = 30f
-                        textAlign = android.graphics.Paint.Align.RIGHT
-                    }
-
+                    // خطوط أفقية خلف الأعمدة
                     for (i in 0..5) {
                         val y = size.height - i * stepSize
-
-                        // Draw horizontal grid line
                         drawLine(
                             color = Color.LightGray.copy(alpha = 0.5f),
                             start = Offset(0f, y),
                             end = Offset(size.width, y),
                             strokeWidth = 1.dp.toPx()
-                        )
-
-                        // Draw label (100%, 80%, ...)
-                        drawContext.canvas.nativeCanvas.drawText(
-                            "${i * 20}%",
-                            30f, // x position (adjust as needed)
-                            y + 10f, // y position aligned with line
-                            labelPaint
                         )
                     }
 
@@ -450,13 +280,11 @@ fun BarChart(
                         val barColor = if (isToday) PrimaryColor else PrimaryLightColor
 
                         val barHeight = percentage * size.height
-                        val left =
-                            index * (barWidth + 16.dp.toPx()) + 60f // shift to the right to leave space for labels
-                        val top = size.height - barHeight
+                        val left = index * (barWidth + barSpacing)
 
                         drawRoundRect(
                             color = barColor,
-                            topLeft = Offset(left, top),
+                            topLeft = Offset(left, size.height - barHeight),
                             size = Size(barWidth, barHeight),
                             cornerRadius = CornerRadius(8.dp.toPx(), 8.dp.toPx())
                         )
@@ -465,21 +293,23 @@ fun BarChart(
             }
         }
 
-        // ✅ هنا مكان Row الخاصة بالأيام
-        Row(
+
+        LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 60.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(start = 48.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            dayLabels.forEachIndexed { index, day ->
+            items(dayLabels.size) { index ->
                 Text(
-                    text = day,
+                    text = dayLabels[index],
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = if (index == dayLabels.lastIndex) PrimaryColor else TextSecondaryColor
                     ),
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.width(40.dp)
+                    modifier = Modifier
+                        .width(40.dp)
+                        .padding(horizontal = 4.dp)
                 )
             }
         }
