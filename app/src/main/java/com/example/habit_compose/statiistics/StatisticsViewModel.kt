@@ -26,13 +26,7 @@ class StatisticsViewModel(
 
 
 
-    //    fun loadDailyAverages() {
-//        viewModelScope.launch {
-//            val last7Days = getLast7Days()
-//            val result = dao.getAverageProgressForDates(last7Days)
-//            _dailyAverages.value = result
-//        }
-//    }
+
     fun loadDailyAverages() {
         viewModelScope.launch {
             val today = LocalDate.now()
@@ -56,22 +50,31 @@ class StatisticsViewModel(
 
             val allProgress = dao.getAllAverageProgress()
 
-            val progressMap = allProgress
-                .map {
-                    val date = LocalDate.parse(it.date, formatter)
-                    val week = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
-                    week to it.avgProgress
+
+            val dailyProgressMap = allProgress
+                .groupBy { it.date }
+                .mapValues { (_, progressesInDay) ->
+                    progressesInDay.map { it.avgProgress }.average()
                 }
-                .groupBy { it.first }
-                .mapValues { (_, list) -> list.map { it.second }.average() }
 
-            val last4Weeks = (0..3).map { today.minusWeeks(it.toLong()).get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) }.distinct().sorted()
 
-            val filledData = last4Weeks.map { weekNumber ->
-                WeeklyAvgProgress(weekNumber, progressMap[weekNumber] ?: 0.0)
+            val last4WeeksStartDates = (0..3).map {
+                today.minusWeeks(it.toLong()).with(java.time.DayOfWeek.MONDAY)
             }
 
-            _weeklyAverages.value = filledData
+
+            val weeklyAverages = last4WeeksStartDates.map { weekStart ->
+                val datesOfWeek = (0..6).map { weekStart.plusDays(it.toLong()) }
+                val dailyValues = datesOfWeek.map { date ->
+                    val dateStr = date.format(formatter)
+                    dailyProgressMap[dateStr] ?: 0.0
+                }
+                val avgOfWeek = dailyValues.average()
+                val weekNumber = weekStart.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
+                WeeklyAvgProgress(weekNumber, avgOfWeek)
+            }.sortedBy { it.weekNumber }
+
+            _weeklyAverages.value = weeklyAverages
         }
     }
 
@@ -83,30 +86,45 @@ class StatisticsViewModel(
 
             val allProgress = dao.getAllAverageProgress()
 
-            val progressMap = allProgress
-                .map {
-                    val date = LocalDate.parse(it.date, formatter)
-                    val month = date.monthValue
-                    month to it.avgProgress
+
+            val dailyProgressMap = allProgress
+                .groupBy { it.date }
+                .mapValues { (_, progressesInDay) ->
+                    progressesInDay.map { it.avgProgress }.average()
                 }
-                .groupBy { it.first }
-                .mapValues { (_, list) -> list.map { it.second }.average() }
 
-            val last6Months = (0..5).map { today.minusMonths(it.toLong()).monthValue }.distinct().sorted()
-
-            val filledData = last6Months.map { month ->
-                MonthlyAvgProgress(month, progressMap[month] ?: 0.0)
+            // 2. نجيب آخر 6 شهور كتاريخ بداية الشهر
+            val last6MonthsStartDates = (0..5).map {
+                today.minusMonths(it.toLong()).withDayOfMonth(1)
             }
 
-            _monthlyAverages.value = filledData
+
+            val monthlyAverages = last6MonthsStartDates.map { monthStart ->
+                val daysInMonth = monthStart.lengthOfMonth()
+                val datesOfMonth = (1..daysInMonth).map { day ->
+                    monthStart.withDayOfMonth(day)
+                }
+                val dailyValues = datesOfMonth.map { date ->
+                    val dateStr = date.format(formatter)
+                    dailyProgressMap[dateStr] ?: 0.0
+                }
+
+                val avgOfMonth = dailyValues.average()
+                val monthNumber = monthStart.monthValue
+
+                MonthlyAvgProgress(monthNumber, avgOfMonth)
+            }.sortedBy { it.month }
+
+            _monthlyAverages.value = monthlyAverages
         }
     }
+
 
 
     suspend fun getWeeklyAverageProgress(): List<WeeklyAvgProgress> {
         val allDailyProgress = dao.getAllAverageProgress()
 
-// نحول التواريخ إلى LocalDate ونقسمها حسب الأسبوع
+
         return allDailyProgress
             .map {
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
