@@ -51,6 +51,7 @@ val PrimaryLightColor = Color(0xFFB39DFF)
 val BackgroundColor = Color(0xFFF5F5F5)
 val TextPrimaryColor = Color(0xFF333333)
 val TextSecondaryColor = Color(0xFF666666)
+// Test update for Git
 
 @Composable
 fun HabitTrackerStatsScreen(
