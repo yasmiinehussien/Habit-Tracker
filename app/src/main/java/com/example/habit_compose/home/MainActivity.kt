@@ -364,7 +364,7 @@ fun HomeScreen(navController: NavController) {
         // 🟪 Tabs below the Calendar now
         Card(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = LightGreenSurface)

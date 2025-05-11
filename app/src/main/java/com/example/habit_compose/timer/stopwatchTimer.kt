@@ -83,7 +83,7 @@ private fun StopwatchUI(
         Text(
             text = "Challenge yourself now !",
             style = MaterialTheme.typography.headlineMedium,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 26.dp)
         )
 
@@ -95,11 +95,11 @@ private fun StopwatchUI(
             modifier = Modifier.fillMaxWidth()
         ) {
             CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.displaySmall) {
-                AnimatedContent(targetState = hours) { Text(it, color = Color.Black) }
-                Text(":", color = Color.Black)
-                AnimatedContent(targetState = minutes) { Text(it, color = Color.Black) }
-                Text(":", color = Color.Black)
-                AnimatedContent(targetState = seconds) { Text(it, color = Color.Black) }
+                AnimatedContent(targetState = hours) { Text(it, color = MaterialTheme.colorScheme.onSurface) }
+                Text(":", color = MaterialTheme.colorScheme.onSurface)
+                AnimatedContent(targetState = minutes) { Text(it, color = MaterialTheme.colorScheme.onSurface) }
+                Text(":", color = MaterialTheme.colorScheme.onSurface)
+                AnimatedContent(targetState = seconds) { Text(it, color = MaterialTheme.colorScheme.onSurface) }
             }
         }
 

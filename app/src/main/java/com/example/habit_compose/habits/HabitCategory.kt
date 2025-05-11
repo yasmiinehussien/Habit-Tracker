@@ -81,7 +81,7 @@ fun HabitCategoryScreen(navController: NavController, onBack: () -> Unit = {}) {
     }
 
     Surface(
-        color = Color(0xFFF5F7FA),
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
@@ -125,12 +125,13 @@ fun HabitCategoryScreen(navController: NavController, onBack: () -> Unit = {}) {
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        disabledContainerColor = Color.White,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        disabledContainerColor = MaterialTheme.colorScheme.surface,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     )
+
                 )
             } else {
                 // Header with title and search icon
@@ -142,10 +143,10 @@ fun HabitCategoryScreen(navController: NavController, onBack: () -> Unit = {}) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Your Habits",
+                        text = "Your Category",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF1B1B1B),
+                        color = MaterialTheme.colorScheme.onBackground,
                         letterSpacing = 0.5.sp
                     )
 
@@ -153,7 +154,7 @@ fun HabitCategoryScreen(navController: NavController, onBack: () -> Unit = {}) {
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search",
-                            tint = Color(0xFF1B1B1B),
+                            tint =MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.size(28.dp)
                         )
                     }
@@ -202,7 +203,7 @@ fun HabitCardStyled(habit: HabitCategory, index: Int, onClick: () -> Unit) {
             .fillMaxWidth()
             .height(260.dp)
             .shadow(12.dp, RoundedCornerShape(26.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         onClick = onClick,
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
@@ -259,7 +260,7 @@ fun HabitCardStyled(habit: HabitCategory, index: Int, onClick: () -> Unit) {
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.6.sp,
-                    color = Color(0xFF1B1B1F)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))

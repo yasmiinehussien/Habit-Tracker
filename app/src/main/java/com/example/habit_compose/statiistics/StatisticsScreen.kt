@@ -46,11 +46,12 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 // Define colors
-val PrimaryColor = Color(0xFF9472EA)
-val PrimaryLightColor = Color(0xFFB39DFF)
-val BackgroundColor = Color(0xFFF5F5F5)
-val TextPrimaryColor = Color(0xFF333333)
-val TextSecondaryColor = Color(0xFF666666)
+val PrimaryColor @Composable get() = MaterialTheme.colorScheme.primary
+val PrimaryLightColor @Composable get() = MaterialTheme.colorScheme.primaryContainer
+val BackgroundColor @Composable get() = MaterialTheme.colorScheme.background
+val TextPrimaryColor @Composable get() = MaterialTheme.colorScheme.onBackground
+val TextSecondaryColor @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+
 // Test update for Git
 
 @Composable
@@ -173,7 +174,7 @@ fun ChartSection(
         TabRow(
             selectedTabIndex = selectedTabIndex,
             containerColor = Color.Transparent,
-            contentColor = PrimaryColor,
+            contentColor = MaterialTheme.colorScheme.onBackground,
             indicator = { tabPositions ->
                 Box(
                     modifier = Modifier
@@ -222,6 +223,12 @@ fun BarChart(
     percentages: List<Float>,
     dayLabels: List<String>
 ) {
+    // خذ الألوان هنا قبل Canvas
+    val todayBarColor = MaterialTheme.colorScheme.primary
+    val normalBarColor = MaterialTheme.colorScheme.primaryContainer
+    val gridLineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    val textColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -245,30 +252,29 @@ fun BarChart(
                 for (label in listOf("100%", "80%", "60%", "40%", "20%", "0%")) {
                     Text(
                         text = label,
-                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryColor),
+                        style = MaterialTheme.typography.bodySmall.copy(color = textColor),
                         textAlign = TextAlign.End,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
 
-            // Bars (with left padding to align better under Y-axis)
+            // Bars
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .padding(start = 8.dp) // ✅ تحريك الأعمدة شِمال
+                    .padding(start = 8.dp)
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val barSpacing = 16.dp.toPx()
                     val barWidth = (size.width - (percentages.size - 1) * barSpacing) / percentages.size
                     val stepSize = size.height / 5
 
-                    // خطوط أفقية خلف الأعمدة
                     for (i in 0..5) {
                         val y = size.height - i * stepSize
                         drawLine(
-                            color = Color.LightGray.copy(alpha = 0.5f),
+                            color = gridLineColor,
                             start = Offset(0f, y),
                             end = Offset(size.width, y),
                             strokeWidth = 1.dp.toPx()
@@ -277,7 +283,7 @@ fun BarChart(
 
                     percentages.forEachIndexed { index, percentage ->
                         val isToday = index == percentages.lastIndex
-                        val barColor = if (isToday) PrimaryColor else PrimaryLightColor
+                        val barColor = if (isToday) todayBarColor else normalBarColor
 
                         val barHeight = percentage * size.height
                         val left = index * (barWidth + barSpacing)
@@ -293,7 +299,6 @@ fun BarChart(
             }
         }
 
-
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -304,7 +309,7 @@ fun BarChart(
                 Text(
                     text = dayLabels[index],
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = if (index == dayLabels.lastIndex) PrimaryColor else TextSecondaryColor
+                        color = if (index == dayLabels.lastIndex) todayBarColor else textColor
                     ),
                     textAlign = TextAlign.Center,
                     modifier = Modifier
