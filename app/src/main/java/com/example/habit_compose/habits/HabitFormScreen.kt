@@ -204,7 +204,7 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
 
             Text(
                 text = "Create New Habit",
-                style = MaterialTheme.typography.headlineSmall.copy(color = Color.Black),
+                style = MaterialTheme.typography.headlineSmall.copy(color = MaterialTheme.colorScheme.onSurface),
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
@@ -335,7 +335,11 @@ fun HabitFormScreen(navController: NavController, categoryTag: String)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            Text("How often per day?", style = MaterialTheme.typography.labelMedium)
+            Text(
+                "How often per day?",
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
 
             var expanded by remember { mutableStateOf(false) }
             val options = listOf(1, 2, 3, 4, 5)

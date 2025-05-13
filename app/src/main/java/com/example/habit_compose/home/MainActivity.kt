@@ -191,11 +191,13 @@ fun HabitListFromDb(habits: List<Habit>, navController: NavController, selectedD
 fun getUsername(): String {
     val user = FirebaseAuth.getInstance().currentUser
     val emailUsername = user?.email?.substringBefore("@")?.let {
-        // Remove any numbers at the beginning of the email address
-        it.replace(Regex("^[0-9]+"), "")
+        // Remove all digits and capitalize first letter
+        it.replace(Regex("[0-9]"), "") // remove all numbers
+            .replaceFirstChar { char -> char.uppercaseChar() } // capitalize first letter
     }
     return user?.displayName ?: emailUsername ?: "Guest"
 }
+
 
 
 

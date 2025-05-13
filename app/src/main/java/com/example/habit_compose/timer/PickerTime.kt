@@ -35,6 +35,7 @@ fun PickerTime(modifier: Modifier=Modifier,onTimeChanged:(Int, Int, Int)->Unit){
     var hour by remember { mutableIntStateOf(0) }
     var minute by remember { mutableIntStateOf(0) }
     var second by remember { mutableIntStateOf(0) }
+    val containerColor=MaterialTheme.colorScheme.surface
 
     Column (
         modifier
@@ -52,7 +53,7 @@ fun PickerTime(modifier: Modifier=Modifier,onTimeChanged:(Int, Int, Int)->Unit){
             onMinuteChange = { minute = it },
             initialSecond = second,
             onSecondChange = { second = it },
-            containerColor = Color.White,
+            containerColor = containerColor,
             horizontalSpace = 28.dp,
             selectedTextStyle = PickTimeTextStyle(
                 color = Color(0xFF5A504B),

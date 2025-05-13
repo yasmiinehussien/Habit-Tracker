@@ -1,6 +1,5 @@
 package com.example.habit_compose.habits
 
-
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
@@ -20,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -30,19 +28,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.*
 import com.example.habit_compose.R
-import com.google.firebase.auth.FirebaseAuth
+import com.example.habit_compose.statiistics.PrimaryColor
+
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
 
 @Composable
 fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: NavController) {
@@ -61,40 +56,28 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
     var completedCount by remember { mutableStateOf(0) }
     var showDoneAnimation by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(habitId, selectedDate) {
-
         scope.launch(Dispatchers.IO) {
             val foundHabit = db.habitDao().getAllHabits().find { it.id == habitId }
             val habitProgress = db.habitProgressDao().getProgressForDate(habitId, selectedDate)
-
-
             withContext(Dispatchers.Main) {
                 habit = foundHabit
                 completedCount = habitProgress?.completedCount ?: foundHabit?.completedCount ?: 0
             }
         }
     }
-
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
 
     habit?.let {
         val category = habitCategories.find { cat -> cat.title == it.categoryTag }
         val totalTimes = it.howOftenPerDay
-        val progress = if (isFuture) {
-            0f
-        } else {
-            (completedCount.toFloat() / totalTimes).coerceIn(0f, 1f)
-        }
-
-
-
-
+        val progress = if (isFuture) 0f else (completedCount.toFloat() / totalTimes).coerceIn(0f, 1f)
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-
-                .background(Color(0xFFF5F5FF))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             Column(
                 modifier = Modifier
@@ -109,7 +92,7 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                     text = it.name,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF3C3C3C)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -124,14 +107,12 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(10.dp, RoundedCornerShape(28.dp)),
                     shape = RoundedCornerShape(50.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(
                         modifier = Modifier.padding(bottom = 24.dp),
@@ -141,7 +122,7 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFFD8F0FF))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .padding(16.dp)
                         ) {
                             Row(
@@ -153,13 +134,13 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                     Icon(
                                         Icons.Default.DateRange,
                                         contentDescription = null,
-                                        tint = Color(0xFF6D6D6D)
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Column {
                                         Text(
                                             "Date",
-                                            color = Color.DarkGray,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Medium
                                         )
@@ -168,7 +149,8 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                                 DateTimeFormatter.ofPattern("dd MMM yyyy")
                                             ),
                                             fontWeight = FontWeight.SemiBold,
-                                            fontSize = 14.sp
+                                            fontSize = 14.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
                                 }
@@ -177,12 +159,11 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                     Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = "Delete habit",
-                                        tint = Color.Gray
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
                         }
-
 
                         Column(
                             modifier = Modifier
@@ -194,7 +175,7 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                 "Goal Previews",
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 17.sp,
-                                color = Color(0xFF333333)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Box(
                                 modifier = Modifier.size(140.dp),
@@ -205,7 +186,7 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                     val canvasHeight = size.height
 
                                     drawArc(
-                                        color = Color(0xFF2196F3),
+                                        color = primaryColor,
                                         startAngle = -90f,
                                         sweepAngle = progress * 360f,
                                         useCenter = false,
@@ -214,16 +195,13 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
 
                                     val padding = 18f
                                     drawArc(
-                                        color = Color(0xFFFF7EB3),
                                         startAngle = -90f,
+                                        color = secondaryColor,
                                         sweepAngle = 360f,
                                         useCenter = false,
                                         style = Stroke(width = 14f, cap = StrokeCap.Round),
                                         topLeft = Offset(padding, padding),
-                                        size = Size(
-                                            canvasWidth - 2 * padding,
-                                            canvasHeight - 2 * padding
-                                        )
+                                        size = Size(canvasWidth - 2 * padding, canvasHeight - 2 * padding)
                                     )
                                 }
 
@@ -231,7 +209,7 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                     text = "${(progress * 100).toInt()}%",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 22.sp,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
@@ -239,14 +217,14 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
 
                             Box(
                                 modifier = Modifier
-                                    .background(Color(0xFFF0F0F0), RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         Icons.Default.DateRange,
                                         contentDescription = null,
-                                        tint = Color.Gray,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
@@ -254,7 +232,7 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                         text = "progress task: ${(progress * 100).toInt()}%",
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = Color(0xFF889389)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -262,9 +240,7 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                             Spacer(modifier = Modifier.height(20.dp))
                             if (showDoneAnimation) {
                                 val composition by rememberLottieComposition(
-                                    LottieCompositionSpec.Asset(
-                                        "done_animation.json"
-                                    )
+                                    LottieCompositionSpec.Asset("done_animation.json")
                                 )
                                 val progressAnim by animateLottieCompositionAsState(
                                     composition,
@@ -291,8 +267,7 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                         scope.launch(Dispatchers.IO) {
                                             val existingProgress = db.habitProgressDao()
                                                 .getProgressForDate(habitId, selectedDate)
-                                            val newCount =
-                                                (existingProgress?.completedCount ?: 0) + 1
+                                            val newCount = (existingProgress?.completedCount ?: 0) + 1
 
                                             val progress = HabitProgress(
                                                 habitId = habitId,
@@ -300,17 +275,17 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                                 completedCount = newCount
                                             )
                                             db.habitProgressDao().insertOrUpdateProgress(progress)
-                                            val progressMap = hashMapOf(
-                                                "habitId" to habitId,
-                                                "date" to selectedDate,
-                                                "completedCount" to newCount
-                                            )
 
                                             FirebaseFirestore.getInstance()
                                                 .collection("habit_progress")
                                                 .document("${habitId}_$selectedDate")
-                                                .set(progressMap)
-
+                                                .set(
+                                                    hashMapOf(
+                                                        "habitId" to habitId,
+                                                        "date" to selectedDate,
+                                                        "completedCount" to newCount
+                                                    )
+                                                )
 
                                             withContext(Dispatchers.Main) {
                                                 completedCount = newCount
@@ -326,9 +301,9 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                 shape = RoundedCornerShape(50),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = when {
-                                        !isToday -> Color.LightGray
-                                        progress >= 1f -> Color(0xFFACE7AE)
-                                        else -> Color(0xFFCCF2FF)
+                                        !isToday -> MaterialTheme.colorScheme.surfaceVariant
+                                        progress >= 1f -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                                        else -> MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
                                     }
                                 ),
                                 modifier = Modifier
@@ -338,34 +313,26 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                 Text(
                                     text = if (progress >= 1f) "Done" else "Complete Task",
                                     fontSize = 15.sp,
-                                    color = Color.Black,
+                                    color = MaterialTheme.colorScheme.onPrimary,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             }
-
                         }
                     }
                 }
-//
+
                 if (showDialog) {
                     AlertDialog(
                         onDismissRequest = { showDialog = false },
-                        title = {
-                            Text("Delete Habit")
-                        },
-                        text = {
-                            Text("Are you sure you want to delete this habit?")
-                        },
+                        title = { Text("Delete Habit") },
+                        text = { Text("Are you sure you want to delete this habit?") },
                         confirmButton = {
                             TextButton(onClick = {
                                 showDialog = false
                                 scope.launch(Dispatchers.IO) {
-                                    // Delete from Room DB
                                     db.habitDao().deleteHabitCompletely(habitId)
-                                    db.habitProgressDao().deleteAllProgressForHabit(habitId) // optional if needed
+                                    db.habitProgressDao().deleteAllProgressForHabit(habitId)
 
-
-                                    // Delete from Firestore
                                     FirebaseFirestore.getInstance()
                                         .collection("habits")
                                         .document(habitId)
@@ -377,16 +344,13 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                                             Log.e("Delete", "Error deleting habit from Firestore", it)
                                         }
                                 }
-
                                 Toast.makeText(context, "Habit deleted", Toast.LENGTH_SHORT).show()
                                 navController.navigate("tabs") {
                                     popUpTo("tabs") { inclusive = true }
                                 }
-
                                 navController.currentBackStackEntry?.savedStateHandle?.set("deleted_habit_id", habitId)
-
                             }) {
-                                Text("Delete", color = Color.Red)
+                                Text("Delete", color = MaterialTheme.colorScheme.error)
                             }
                         },
                         dismissButton = {
@@ -396,6 +360,7 @@ fun HabitDetailsScreen(habitId: String, selectedDate: String, navController: Nav
                         }
                     )
                 }
+
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
